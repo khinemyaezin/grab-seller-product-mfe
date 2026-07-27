@@ -16,11 +16,12 @@ import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
 import type { ProductFormValue } from "@/features/products/types";
 
 type VariantTableProps = {
+  onAllVariantsDeleted?: () => void;
 }
 
-export function VariantTable({ }: VariantTableProps) {
+export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const { control  } = useFormContext<ProductFormValue>();
+  const { control } = useFormContext<ProductFormValue>();
   const { fields, remove } = useFieldArray({
     control,
     name: "product.variants",
@@ -48,8 +49,12 @@ export function VariantTable({ }: VariantTableProps) {
   };
 
   function handleDelete() {
+    const isDeletingAll = selectedIndices.length === variantFields.length;
     remove(selectedIndices);
     setSelectedIndices([]);
+    if (isDeletingAll) {
+      onAllVariantsDeleted?.();
+    }
   }
 
   return variantFields.length !== 0 && (

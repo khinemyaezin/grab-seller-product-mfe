@@ -64,7 +64,7 @@ export default function ProductVariationFieldSet() {
                 </Item>
             </div>
             {fields.length !== 0 && (
-                <VariantTable />
+                <VariantTable onAllVariantsDeleted={() => remove()} />
             )}
         </FieldSet>
     );
