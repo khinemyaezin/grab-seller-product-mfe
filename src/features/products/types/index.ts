@@ -18,6 +18,9 @@ export type {
   CreateProductRequestProduct,
   CreateProductRequestVariation,
   CreateProductRequestVariationType,
+  CreateSellableProductRequest,
+  CreateSellableProductPricingLine,
+  CreateSellableProductInventoryLine,
   UpdateProductRequest,
   UPDATE_INTENT,
   ProductSearchRequest,
@@ -42,10 +45,14 @@ export type {
   GetVariationOptionResult,
   ProductModerationResponse,
   DeleteProductResponse,
+  WorkflowsRoot,
+  CreateSellableProductResponse,
 } from "./catalog.response";
 
 // Form Values
 export type {
   ProductFormValue,
   ProductFilterFormValue,
+  PricingLineFormValue,
+  InventoryLineFormValue,
 } from "./catalog.form";

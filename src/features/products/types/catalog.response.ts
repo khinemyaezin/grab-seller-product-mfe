@@ -129,3 +129,24 @@ export interface DeleteProductResponse {
   deleted: boolean
 
 }
+
+export interface WorkflowsRoot {
+  self?: HateoasLink;
+  createSellableProduct?: HateoasLink;
+  getCreateSellableProduct?: HateoasLink;
+}
+
+export type CreateSellableProductResponse = {
+  workflowId: string;
+  status: string;
+  currentStep?: string | null;
+  productId?: string | null;
+  pricePairs?: {
+    variantId: string;
+    sku: string;
+    priceSetId: string;
+  }[];
+  inventoryItemIds?: string[];
+  errorMessage?: string | null;
+  _links?: Record<string, HateoasLink>;
+};

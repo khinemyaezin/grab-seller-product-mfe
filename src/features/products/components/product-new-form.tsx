@@ -1,136 +1,210 @@
-import { FormProvider, useForm } from "react-hook-form"
+import { FormProvider, useForm, useWatch } from "react-hook-form"
 import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { generateSlug } from "@/features/products/utils";
-import { useProductMutation } from "@/features/products/hooks/use-products";
-import { useCatalogLink } from "@/features/products/hooks/use-root";
+import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
 import { Card, CardContent, CardFooter } from "@khinemyaezin/seller-ui/components/card";
 import { Separator } from "@khinemyaezin/seller-ui/components/separator";
 import { Button, ButtonStatus } from "@khinemyaezin/seller-ui/components/index";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
-import { ProductFormValue, CreateProductRequest } from "../types";
-
+import { usePlatform } from "@khinemyaezin/seller-ui";
+import {
+  ProductFormValue,
+  CreateSellableProductRequest,
+} from "../types";
 import type { ProductLifecycleEvent } from "../types";
+import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
 
 export type ProductNewFormProps = {
-    onLifecycleEvent?: (event: ProductLifecycleEvent) => void;
+  onLifecycleEvent?: (event: ProductLifecycleEvent) => void
 };
 
 const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
-    product: {
-        name: "",
-        category: null,
-        variants: [],
-        standaloneVariant: {
-            sku: ""
-        },
+  product: {
+    name: "",
+    category: null,
+    variants: [],
+    standaloneVariant: {
+      sku: "",
     },
-    variationTypes: [],
+  },
+  variationTypes: [],
+  pricingLines: [],
+  inventoryLines: [],
+  inventoryLocationId: "",
 };
 
-function buildCreatePayload(values: ProductFormValue): CreateProductRequest {
-    const mappedVariants = values.product.variants.length > 0
-        ? values.product.variants.map((variant) => ({
-            sku: variant.sku,
-            variations: variant.variations.map((v) => ({
-                typeId: v.typeId,
-                optionId: v.optionId,
-            })),
-        }))
-        : [{
-            sku: values.product.standaloneVariant.sku,
-            variations: [],
-        }];
-
-    return {
-        product: {
-            name: values.product.name,
-            categoryId: values.product.category?.id || "",
-            condition: "NEW",
-            slug: generateSlug(values.product.name),
-            variants: mappedVariants,
-        },
-        variantTypes: values.variationTypes.map((type) => ({
-            typeId: type.uuid,
-            options: type.options
-                .filter((option) => option.uuid !== "")
-                .map((option) => ({
-                    optionId: option.uuid,
-                })),
-        })),
-    };
+function resolveSkus(values: ProductFormValue): string[] {
+  if (values.product.variants.length > 0) {
+    return values.product.variants
+      .map((variant) => variant.sku?.trim())
+      .filter((sku): sku is string => !!sku);
+  }
+  const standalone = values.product.standaloneVariant.sku?.trim();
+  return standalone ? [standalone] : [];
 }
 
-export default function ProductNewForm({ onLifecycleEvent }: ProductNewFormProps) {
-    const createProductLink = useCatalogLink("createProduct");
-    const form = useForm<ProductFormValue>({
-        defaultValues: DEFAULT_PRODUCT_FORM_VALUE,
-        mode: "onSubmit"
-    });
+function buildCreatePayload(values: ProductFormValue): CreateSellableProductRequest {
+  const mappedVariants = values.product.variants.length > 0
+    ? values.product.variants.map((variant) => ({
+      sku: variant.sku,
+      variations: variant.variations.map((v) => ({
+        typeId: v.typeId,
+        optionId: v.optionId,
+      })),
+    }))
+    : [{
+      sku: values.product.standaloneVariant.sku ?? "",
+      variations: [],
+    }];
 
-    const { handleSubmit, reset, formState: { isDirty } } = form;
+  const pricingLines = (values.pricingLines ?? [])
+    .filter((line) => line.sku?.trim() && line.amount !== "" && line.currencyCode)
+    .map((line) => ({
+      sku: line.sku.trim(),
+      title: line.title?.trim() || undefined,
+      currencyCode: line.currencyCode,
+      amount: Number(line.amount),
+      minQuantity: line.minQuantity ?? undefined,
+      maxQuantity: line.maxQuantity ?? undefined,
+    }));
 
-    const createProductApi = useProductMutation();
+  const sharedLocationId = values.inventoryLocationId?.trim() ?? "";
+  const inventoryLines = (values.inventoryLines ?? [])
+    .filter((line) => line.sku?.trim())
+    .map((line) => {
+      const maxStockValue =
+        line.maxStock === "" || line.maxStock == null
+          ? undefined
+          : Number(line.maxStock);
+      return {
+        sku: line.sku.trim(),
+        locationId: (line.locationId || sharedLocationId).trim(),
+        initialQuantity: Number(line.initialQuantity) || 0,
+        safetyStock:
+          line.safetyStock === "" || line.safetyStock == null
+            ? undefined
+            : Number(line.safetyStock),
+        reorderPoint:
+          line.reorderPoint === "" || line.reorderPoint == null
+            ? undefined
+            : Number(line.reorderPoint),
+        reorderQuantity:
+          line.reorderQuantity === "" || line.reorderQuantity == null
+            ? undefined
+            : Number(line.reorderQuantity),
+        maxStock: Number.isFinite(maxStockValue) ? maxStockValue : undefined,
+      };
+    })
+    .filter((line) => !!line.locationId);
 
+  return {
+    product: {
+      name: values.product.name,
+      categoryId: values.product.category?.id || "",
+      condition: "NEW",
+      slug: generateSlug(values.product.name),
+      variants: mappedVariants,
+    },
+    variantTypes: values.variationTypes.map((type) => ({
+      typeId: type.uuid,
+      options: type.options
+        .filter((option) => option.uuid !== "")
+        .map((option) => ({
+          optionId: option.uuid,
+        })),
+    })),
+    pricingLines,
+    inventoryLines,
+  };
+}
 
+export default function ProductNewForm({
+  onLifecycleEvent
+}: ProductNewFormProps) {
+  const platform = usePlatform();
+  //const createSellableProductLink = useCreateSellableProductLink(workflowsLink);
+  const form = useForm<ProductFormValue>({
+    defaultValues: DEFAULT_PRODUCT_FORM_VALUE,
+    mode: "onSubmit",
+  });
 
-    const handleFormSubmit = (values: ProductFormValue) => {
-        if (!createProductLink) return;
-        const payload = buildCreatePayload(values);
-        createProductApi.mutate(
-            { link: createProductLink, request: payload },
-            {
-                onSuccess: () => {
-                    onLifecycleEvent?.({ type: "created" });
-                    createProductApi.reset();
-                    reset();
-                },
-                onError: (error) => {
-                    console.error("Failed to create product:", error);
-                    onLifecycleEvent?.({ type: "createFailed" });
-                    createProductApi.reset();
-                }
-            }
-        );
+  const { handleSubmit, reset, control, formState: { isDirty } } = form;
+  const product = useWatch({ control, name: "product" });
+  const skus = resolveSkus({
+    product: product ?? DEFAULT_PRODUCT_FORM_VALUE.product,
+    variationTypes: [],
+    pricingLines: [],
+    inventoryLines: [],
+  });
+
+  const createSellableProductApi = useCreateSellableProductMutation();
+
+  const handleFormSubmit = (values: ProductFormValue) => {
+    //if (!createSellableProductLink) return;
+    const payload = buildCreatePayload(values);
+    if (payload.pricingLines.length === 0 || payload.inventoryLines.length === 0) {
+      onLifecycleEvent?.({ type: "createFailed" });
+      return;
     }
 
-    return (
-        <FormProvider {...form}>
-            <form onSubmit={handleSubmit(handleFormSubmit)} className="grid gap-6">
-                <Card>
-                    <CardContent>
-                        <ProductBasicFieldSet />
-                        <Separator className="my-6" />
-                        <ProductVariationFieldSet />
-                    </CardContent>
-                    {isDirty && (
-                        <CardFooter className="flex justify-end">
-                            <ButtonGroup>
-                                <ButtonGroup>
+    createSellableProductApi.mutate(
+      { link: undefined!, request: payload },
+      {
+        onSuccess: () => {
+          onLifecycleEvent?.({ type: "created" });
+          createSellableProductApi.reset();
+          reset();
+        },
+        onError: (error) => {
+          console.error("Failed to create sellable product:", error);
+          onLifecycleEvent?.({ type: "createFailed" });
+          createSellableProductApi.reset();
+        },
+      },
+    );
+  };
 
-                                    <Button type="submit" disabled={createProductApi.isPending}>
-                                        <ButtonStatus status={
-                                            createProductApi.isPending
-                                                ? "pending"
-                                                : createProductApi.isSuccess
-                                                    ? "success"
-                                                    : createProductApi.isError
-                                                        ? "failed"
-                                                        : "idle"
-                                        }
-                                            pendingLabel="Saving…"
-                                            successLabel="Saved">
-                                            Save
-                                        </ButtonStatus>
-                                    </Button>
-
-                                </ButtonGroup>
-                            </ButtonGroup>
-                        </CardFooter>
-                    )}
-                </Card>
-            </form>
-
-        </FormProvider>
-    )
+  return (
+    <FormProvider {...form}>
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="grid gap-6">
+        <Card>
+          <CardContent>
+            <ProductBasicFieldSet />
+            <Separator className="my-6" />
+            <ProductVariationFieldSet />
+            <ExtensionSlot name={PRODUCT_EXTENSION_SLOTS.CREATE_PRICING} props={{ skus }} />
+          </CardContent>
+          {isDirty && (
+            <CardFooter className="flex justify-end">
+              <ButtonGroup>
+                <ButtonGroup>
+                  <Button
+                    type="submit"
+                    disabled={createSellableProductApi.isPending}
+                  >
+                    <ButtonStatus
+                      status={
+                        createSellableProductApi.isPending
+                          ? "pending"
+                          : createSellableProductApi.isSuccess
+                            ? "success"
+                            : createSellableProductApi.isError
+                              ? "failed"
+                              : "idle"
+                      }
+                      pendingLabel="Saving…"
+                      successLabel="Saved"
+                    >
+                      Save
+                    </ButtonStatus>
+                  </Button>
+                </ButtonGroup>
+              </ButtonGroup>
+            </CardFooter>
+          )}
+        </Card>
+      </form>
+    </FormProvider>
+  );
 }

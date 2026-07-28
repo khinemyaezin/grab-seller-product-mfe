@@ -5,24 +5,37 @@ import { Route, Routes } from "react-router";
 import ProductListPage from "@/features/products/pages/product-list-page";
 import ProductCreatePage from "@/features/products/pages/product-create-page";
 import ProductEditPage from "@/features/products/pages/product-edit-page";
+import {
+  ExtensionProvider,
+  type ExtensionRegistry,
+} from "@/extensions";
 import "../styles.css";
 
-export default function AppRoutes({ link, platform }: {
+export type AppRoutesProps = {
   link: HateoasLink;
   platform?: SellerPlatform;
-}) {
+  extensions?: ExtensionRegistry;
+};
+
+export default function AppRoutes({
+  link,
+  platform,
+  extensions
+}: AppRoutesProps) {
   return (
     <div className="seller-product-mfe">
-      <PlatformProvider platform={platform}>
-        <EntryLinkProvider link={link}>
-          <Routes>
-            <Route index element={<ProductListPage />} />
-            <Route path="new" element={<ProductCreatePage />} />
-            <Route path=":productId" element={<ProductEditPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </EntryLinkProvider>
-      </PlatformProvider>
+      <ExtensionProvider extensions={extensions}>
+        <PlatformProvider platform={platform}>
+          <EntryLinkProvider link={link}>
+            <Routes>
+              <Route index element={<ProductListPage />} />
+              <Route path="new" element={<ProductCreatePage/>}/>
+              <Route path=":productId" element={<ProductEditPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </EntryLinkProvider>
+        </PlatformProvider>
+      </ExtensionProvider>
     </div>
-  )
+  );
 }

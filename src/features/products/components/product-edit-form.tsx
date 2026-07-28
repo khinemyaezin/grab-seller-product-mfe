@@ -32,6 +32,9 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
         }
     },
     variationTypes: [],
+    pricingLines: [],
+    inventoryLines: [],
+    inventoryLocationId: "",
 };
 
 function determineUpdateIntent({
@@ -143,6 +146,9 @@ function transformProductToFormValue(apiData: GetFullProductResponse): ProductFo
                 { uuid: "", name: "" }
             ]
         })),
+        pricingLines: [],
+        inventoryLines: [],
+        inventoryLocationId: "",
     };
 }
 
