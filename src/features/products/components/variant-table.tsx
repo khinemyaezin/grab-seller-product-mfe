@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Input } from "@khinemyaezin/seller-ui/components/input";
+import { InputGroup, InputGroupAddon, InputGroupText, InputGroupInput } from "@khinemyaezin/seller-ui/components/input-group";
 import { Button } from "@khinemyaezin/seller-ui/components/button";
 import {
   Table,
@@ -10,22 +11,31 @@ import {
   TableHeader,
   TableRow,
 } from "@khinemyaezin/seller-ui/components/table";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Checkbox } from "@khinemyaezin/seller-ui/components/checkbox";
 import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
 import type { ProductFormValue } from "@/features/products/types";
+import { VariantEditDialog } from "./variant-edit-dialog";
 
 type VariantTableProps = {
   onAllVariantsDeleted?: () => void;
 }
 
+type SetupTarget = {
+  lineIndex: number;
+  variantName: string;
+  sku: string;
+};
+
 export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
+  const [setupTarget, setSetupTarget] = useState<SetupTarget | null>(null);
   const { control } = useFormContext<ProductFormValue>();
   const { fields, remove } = useFieldArray({
     control,
     name: "product.variants",
   });
+  const pricingLines = useWatch({ control, name: "pricingLines" }) ?? [];
 
   const variantFields = useMemo(() =>
     fields
@@ -85,10 +95,12 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
             </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
+            <TableHead>Price</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {variantFields.map(({ field: variant, index }) => {
+          {variantFields.map(({ field: variant, index }, lineIndex) => {
+            const currencyCode = pricingLines[lineIndex]?.currencyCode ?? "USD";
             return (
               <TableRow
                 key={variant.matrixKey}
@@ -100,7 +112,19 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                   />
                 </TableCell>
                 <TableCell>
-                  <span>{variant.name}</span>
+                  <button
+                    type="button"
+                    className="text-left text-sm font-medium text-primary underline-offset-4 hover:underline"
+                    onClick={() =>
+                      setSetupTarget({
+                        lineIndex,
+                        variantName: variant.name,
+                        sku: variant.sku ?? "",
+                      })
+                    }
+                  >
+                    {variant.name}
+                  </button>
                 </TableCell>
                 <TableCell className="px-4 py-2">
                   <Controller
@@ -124,11 +148,51 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                     )}
                   />
                 </TableCell>
+                <TableCell className="px-4 py-2">
+                  <Controller
+                    control={control}
+                    name={`pricingLines.${lineIndex}.amount`}
+                    render={({ field, fieldState }) => (
+                      <Field>
+                        <InputGroup>
+                          <InputGroupInput
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={field.value ?? ""}
+                            onChange={(event) => {
+                              const raw = event.target.value;
+                              field.onChange(raw === "" ? "" : Number(raw));
+                            }}
+                            aria-invalid={fieldState.invalid}
+                            placeholder="0.00"
+                          />
+                          <InputGroupAddon align="inline-end">
+                            <InputGroupText>{currencyCode}</InputGroupText>
+                          </InputGroupAddon>
+                        </InputGroup>
+                        {fieldState.error && (
+                          <FieldError>{fieldState.error?.message}</FieldError>
+                        )}
+                      </Field>
+                    )}
+                  />
+                </TableCell>
               </TableRow>
             )
           })}
         </TableBody>
       </Table>
+
+      <VariantEditDialog
+        open={setupTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setSetupTarget(null);
+        }}
+        variantName={setupTarget?.variantName ?? ""}
+        sku={setupTarget?.sku ?? ""}
+        lineIndex={setupTarget?.lineIndex ?? 0}
+      />
     </div>
   );
 }

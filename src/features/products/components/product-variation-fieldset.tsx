@@ -7,6 +7,7 @@ import { useMatrixSync } from "@/features/products/hooks/use-matrix-sync";
 import type { ProductFormValue } from "@/features/products/types";
 import ProductStandaloneVariantField from "./product-standalone-field";
 import { VariationTypeField } from "./product-variation-type-field";
+import { usePricingLinesSync } from "../hooks/use-pricing-lines-sync";
 
 export default function ProductVariationFieldSet() {
     const { control, getValues } = useFormContext<ProductFormValue>();
@@ -16,6 +17,7 @@ export default function ProductVariationFieldSet() {
     });
 
     useMatrixSync();
+    usePricingLinesSync();
 
     const handleAddType = (e: React.MouseEvent) => {
         e.preventDefault();

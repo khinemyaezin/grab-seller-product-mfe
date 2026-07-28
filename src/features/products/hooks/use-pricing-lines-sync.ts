@@ -1,0 +1,79 @@
+import { useEffect } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
+import type { PricingLineFormValue, ProductFormValue } from "@/features/products/types";
+
+const DEFAULT_CURRENCY = "USD";
+
+function defaultPricingLine(sku: string): PricingLineFormValue {
+  return {
+    sku,
+    title: "",
+    currencyCode: DEFAULT_CURRENCY,
+    amount: "",
+    minQuantity: null,
+    maxQuantity: null,
+  };
+}
+
+function pricingLinesEqual(
+  a: PricingLineFormValue[],
+  b: PricingLineFormValue[],
+): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((line, index) => {
+    const other = b[index];
+    return (
+      line.sku === other.sku &&
+      line.amount === other.amount &&
+      line.currencyCode === other.currencyCode &&
+      (line.title ?? "") === (other.title ?? "") &&
+      (line.minQuantity ?? null) === (other.minQuantity ?? null) &&
+      (line.maxQuantity ?? null) === (other.maxQuantity ?? null)
+    );
+  });
+}
+
+
+export function usePricingLinesSync() {
+  const { control, setValue, getValues } = useFormContext<ProductFormValue>();
+  const variants = useWatch({ control, name: "product.variants" });
+  const variationTypes = useWatch({ control, name: "variationTypes" });
+  const standaloneSku = useWatch({
+    control,
+    name: "product.standaloneVariant.sku",
+  });
+
+  useEffect(() => {
+    const existing = getValues("pricingLines") ?? [];
+    const hasVariations = (variationTypes?.length ?? 0) > 0;
+
+    let next: PricingLineFormValue[];
+
+    if (hasVariations) {
+      const activeVariants = (variants ?? []).filter(
+        (variant) => variant.variations.length > 0,
+      );
+      next = activeVariants.map((variant, index) => {
+        const sku = variant.sku ?? "";
+        const bySku =
+          sku.trim() !== ""
+            ? existing.find((line) => line.sku === sku)
+            : undefined;
+        const base = bySku ?? existing[index] ?? defaultPricingLine(sku);
+        return { ...base, sku };
+      });
+    } else {
+      const sku = standaloneSku ?? "";
+      const bySku =
+        sku.trim() !== ""
+          ? existing.find((line) => line.sku === sku)
+          : undefined;
+      const base = bySku ?? existing[0] ?? defaultPricingLine(sku);
+      next = [{ ...base, sku }];
+    }
+
+    if (!pricingLinesEqual(existing, next)) {
+      setValue("pricingLines", next, { shouldDirty: true });
+    }
+  }, [variants, variationTypes, standaloneSku, getValues, setValue]);
+}

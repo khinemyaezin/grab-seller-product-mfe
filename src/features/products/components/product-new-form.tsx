@@ -1,19 +1,18 @@
-import { FormProvider, useForm, useWatch } from "react-hook-form"
+import { FormProvider, useForm, useFormContext } from "react-hook-form"
 import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { generateSlug } from "@/features/products/utils";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
+import { usePricingLinesSync } from "@/features/products/hooks/use-pricing-lines-sync";
 import { Card, CardContent, CardFooter } from "@khinemyaezin/seller-ui/components/card";
 import { Separator } from "@khinemyaezin/seller-ui/components/separator";
 import { Button, ButtonStatus } from "@khinemyaezin/seller-ui/components/index";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
-import { usePlatform } from "@khinemyaezin/seller-ui";
 import {
   ProductFormValue,
   CreateSellableProductRequest,
 } from "../types";
 import type { ProductLifecycleEvent } from "../types";
-import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
 
 export type ProductNewFormProps = {
   onLifecycleEvent?: (event: ProductLifecycleEvent) => void
@@ -33,16 +32,6 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
   inventoryLines: [],
   inventoryLocationId: "",
 };
-
-function resolveSkus(values: ProductFormValue): string[] {
-  if (values.product.variants.length > 0) {
-    return values.product.variants
-      .map((variant) => variant.sku?.trim())
-      .filter((sku): sku is string => !!sku);
-  }
-  const standalone = values.product.standaloneVariant.sku?.trim();
-  return standalone ? [standalone] : [];
-}
 
 function buildCreatePayload(values: ProductFormValue): CreateSellableProductRequest {
   const mappedVariants = values.product.variants.length > 0
@@ -122,26 +111,15 @@ function buildCreatePayload(values: ProductFormValue): CreateSellableProductRequ
 export default function ProductNewForm({
   onLifecycleEvent
 }: ProductNewFormProps) {
-  const platform = usePlatform();
-  //const createSellableProductLink = useCreateSellableProductLink(workflowsLink);
   const form = useForm<ProductFormValue>({
     defaultValues: DEFAULT_PRODUCT_FORM_VALUE,
     mode: "onSubmit",
   });
 
-  const { handleSubmit, reset, control, formState: { isDirty } } = form;
-  const product = useWatch({ control, name: "product" });
-  const skus = resolveSkus({
-    product: product ?? DEFAULT_PRODUCT_FORM_VALUE.product,
-    variationTypes: [],
-    pricingLines: [],
-    inventoryLines: [],
-  });
-
+  const { handleSubmit, reset, formState: { isDirty } } = form;
   const createSellableProductApi = useCreateSellableProductMutation();
 
   const handleFormSubmit = (values: ProductFormValue) => {
-    //if (!createSellableProductLink) return;
     const payload = buildCreatePayload(values);
     if (payload.pricingLines.length === 0 || payload.inventoryLines.length === 0) {
       onLifecycleEvent?.({ type: "createFailed" });
@@ -173,7 +151,6 @@ export default function ProductNewForm({
             <ProductBasicFieldSet />
             <Separator className="my-6" />
             <ProductVariationFieldSet />
-            <ExtensionSlot name={PRODUCT_EXTENSION_SLOTS.CREATE_PRICING} props={{ skus }} />
           </CardContent>
           {isDirty && (
             <CardFooter className="flex justify-end">
