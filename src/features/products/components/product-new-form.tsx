@@ -1,9 +1,8 @@
-import { FormProvider, useForm, useFormContext } from "react-hook-form"
+import { FormProvider, useForm } from "react-hook-form"
 import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { generateSlug } from "@/features/products/utils";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
-import { usePricingLinesSync } from "@/features/products/hooks/use-pricing-lines-sync";
 import { Card, CardContent, CardFooter } from "@khinemyaezin/seller-ui/components/card";
 import { Separator } from "@khinemyaezin/seller-ui/components/separator";
 import { Button, ButtonStatus } from "@khinemyaezin/seller-ui/components/index";

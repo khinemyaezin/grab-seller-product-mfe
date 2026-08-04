@@ -152,8 +152,15 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                   <Controller
                     control={control}
                     name={`pricingLines.${lineIndex}.amount`}
+                    rules={{
+                      validate: (value) => {
+                        if (value === "" || value == null) return "Amount is required";
+                        if (Number(value) < 0) return "Must be 0 or greater";
+                        return true;
+                      },
+                    }}
                     render={({ field, fieldState }) => (
-                      <Field>
+                      <Field data-invalid={fieldState.invalid}>
                         <InputGroup>
                           <InputGroupInput
                             type="number"
@@ -164,6 +171,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                               const raw = event.target.value;
                               field.onChange(raw === "" ? "" : Number(raw));
                             }}
+                            onBlur={field.onBlur}
                             aria-invalid={fieldState.invalid}
                             placeholder="0.00"
                           />

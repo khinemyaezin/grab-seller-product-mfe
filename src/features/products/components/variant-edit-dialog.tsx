@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@khinemyaezin/seller-ui/components/dialog";
-import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
+import { PricingLineSlot } from "./pricing-line-slot";
 
 export type VariantEditDialogProps = {
   open: boolean;
@@ -27,10 +27,13 @@ export function VariantEditDialog({
         <DialogHeader>
           <DialogTitle>{`Edit ${variantName}`}</DialogTitle>
         </DialogHeader>
-        <ExtensionSlot
-          name={PRODUCT_EXTENSION_SLOTS.CREATE_PRICING}
-          props={{ sku, lineIndex }}
-        />
+        {open ? (
+          <PricingLineSlot
+            key={`${lineIndex}:${sku}`}
+            sku={sku}
+            lineIndex={lineIndex}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   );

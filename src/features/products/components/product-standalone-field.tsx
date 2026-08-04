@@ -1,7 +1,7 @@
 import { Input } from "@khinemyaezin/seller-ui/components/index";
 import { useController, UseControllerProps } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@khinemyaezin/seller-ui/components/field";
-import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
+import { PricingLineSlot } from "./pricing-line-slot";
 
 export default function ProductStandaloneVariantField({ ...props }: UseControllerProps) {
     const { field, fieldState } = useController(props);
@@ -18,10 +18,7 @@ export default function ProductStandaloneVariantField({ ...props }: UseControlle
                     <FieldError errors={[fieldState.error]} />
                 )}
             </Field>
-            <ExtensionSlot
-                name={PRODUCT_EXTENSION_SLOTS.CREATE_PRICING}
-                props={{ sku: field.value ?? "", lineIndex: 0 }}
-            />
+            <PricingLineSlot sku={field.value ?? ""} lineIndex={0} />
         </div>
     );
 }
