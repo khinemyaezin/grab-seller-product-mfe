@@ -30,7 +30,8 @@ export default defineConfig(({ mode }) => {
           "react-router": { singleton: true, requiredVersion: "7.18.0" },
           "@tanstack/react-query": { singleton: true, requiredVersion: "5.99.2" },
           "@khinemyaezin/seller-api": { singleton: true },
-          "@khinemyaezin/seller-ui": { singleton: true }
+          "@khinemyaezin/seller-ui": { singleton: true },
+          "react-hook-form": { singleton: true, requiredVersion: "7.74.0" },
         },
       }),
     ],

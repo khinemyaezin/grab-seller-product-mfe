@@ -13,6 +13,7 @@ import {
 } from "../types";
 import type { ProductLifecycleEvent } from "../types";
 import { PricingLineSlot } from "./pricing-line-slot";
+import { InventoryLineSlot } from "./inventory-line-slot";
 import { HateoasLink } from "@khinemyaezin/seller-api";
 
 export type ProductNewFormProps = {
@@ -145,21 +146,31 @@ export default function ProductNewForm({
       <form onSubmit={handleSubmit(handleFormSubmit)}>
 
         <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <Card className="flex-1 w-full">
-              <CardContent>
-                <ProductBasicFieldSet />
-              </CardContent>
-              <Separator />
-              <CardContent>
-                <ProductVariationFieldSet />
-              </CardContent>
-            </Card>
-
-          <Card>
+          <Card className="flex-1 w-full">
             <CardContent>
-              <PricingLineSlot sku={watch("product.standaloneVariant.sku") ?? ""} lineIndex={0} />
+              <ProductBasicFieldSet />
+            </CardContent>
+            <Separator />
+            <CardContent>
+              <ProductVariationFieldSet />
             </CardContent>
           </Card>
+
+          <div className="flex w-full flex-col gap-6 lg:max-w-sm">
+            <Card>
+              <CardContent>
+                <PricingLineSlot sku={watch("product.standaloneVariant.sku") ?? ""} lineIndex={0} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent>
+                <InventoryLineSlot
+                  sku={watch("product.standaloneVariant.sku") ?? ""}
+                  lineIndex={0}
+                />
+              </CardContent>
+            </Card>
+          </div>
         </div>
         {isDirty && (
           <div className="flex w-full max-w-md flex-col gap-6">

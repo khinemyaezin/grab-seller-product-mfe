@@ -15,7 +15,7 @@ export default function ProductBasicFieldSet() {
                 Enter the product details and variations.
             </FieldDescription>
             <FieldGroup>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-rows-1 lg:grid-cols-2 gap-4">
                     <Controller
                         control={control}
                         name="product.name"
@@ -36,7 +36,6 @@ export default function ProductBasicFieldSet() {
                                 )}
                             </Field>
                         )}
-
                     />
                     <Controller
                         control={control}

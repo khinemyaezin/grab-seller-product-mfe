@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   useController,
   useFormContext,
@@ -20,7 +20,7 @@ function defaultPricingLine(sku: string): PricingLineFormValue {
     sku,
     title: "",
     currencyCode: DEFAULT_CURRENCY,
-    amount: "",
+    amount: 0,
     minQuantity: null,
     maxQuantity: null,
   };

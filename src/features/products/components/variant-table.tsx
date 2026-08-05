@@ -96,6 +96,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
             <TableHead>Price</TableHead>
+            <TableHead>Stock</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -179,6 +180,41 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                             <InputGroupText>{currencyCode}</InputGroupText>
                           </InputGroupAddon>
                         </InputGroup>
+                        {fieldState.error && (
+                          <FieldError>{fieldState.error?.message}</FieldError>
+                        )}
+                      </Field>
+                    )}
+                  />
+                </TableCell>
+                <TableCell className="px-4 py-2">
+                  <Controller
+                    control={control}
+                    name={`inventoryLines.${lineIndex}.initialQuantity`}
+                    rules={{
+                      validate: (value) => {
+                        if (value === "" || value == null) {
+                          return "Initial quantity is required";
+                        }
+                        if (Number(value) < 0) return "Must be 0 or greater";
+                        return true;
+                      },
+                    }}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={field.value ?? ""}
+                          onChange={(event) => {
+                            const raw = event.target.value;
+                            field.onChange(raw === "" ? "" : Number(raw));
+                          }}
+                          onBlur={field.onBlur}
+                          aria-invalid={fieldState.invalid}
+                          placeholder="0"
+                          className="w-full"
+                        />
                         {fieldState.error && (
                           <FieldError>{fieldState.error?.message}</FieldError>
                         )}

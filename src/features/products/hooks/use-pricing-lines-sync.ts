@@ -9,7 +9,7 @@ function defaultPricingLine(sku: string): PricingLineFormValue {
     sku,
     title: "",
     currencyCode: DEFAULT_CURRENCY,
-    amount: "",
+    amount: 0,
     minQuantity: null,
     maxQuantity: null,
   };
