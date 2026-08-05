@@ -66,14 +66,16 @@ export function useInventoryLinesSync() {
           sku.trim() !== ""
             ? existing.find((line) => line.sku === sku)
             : undefined;
-        const base =
-          bySku ??
-          existing[index] ??
-          defaultInventoryLine(sku, fallbackLocation);
+        const fallback = defaultInventoryLine(sku, fallbackLocation);
+        const found = (bySku ?? existing[index] ?? {}) as Partial<InventoryLineFormValue>;
         return {
-          ...base,
           sku,
-          locationId: base.locationId || fallbackLocation,
+          locationId: found.locationId || fallbackLocation,
+          initialQuantity: found.initialQuantity ?? fallback.initialQuantity,
+          safetyStock: found.safetyStock ?? fallback.safetyStock,
+          reorderPoint: found.reorderPoint ?? fallback.reorderPoint,
+          reorderQuantity: found.reorderQuantity ?? fallback.reorderQuantity,
+          maxStock: found.maxStock ?? fallback.maxStock,
         };
       });
     } else {
@@ -82,13 +84,17 @@ export function useInventoryLinesSync() {
         sku.trim() !== ""
           ? existing.find((line) => line.sku === sku)
           : undefined;
-      const base =
-        bySku ?? existing[0] ?? defaultInventoryLine(sku, fallbackLocation);
+      const fallback = defaultInventoryLine(sku, fallbackLocation);
+      const found = (bySku ?? existing[0] ?? {}) as Partial<InventoryLineFormValue>;
       next = [
         {
-          ...base,
           sku,
-          locationId: base.locationId || fallbackLocation,
+          locationId: found.locationId || fallbackLocation,
+          initialQuantity: found.initialQuantity ?? fallback.initialQuantity,
+          safetyStock: found.safetyStock ?? fallback.safetyStock,
+          reorderPoint: found.reorderPoint ?? fallback.reorderPoint,
+          reorderQuantity: found.reorderQuantity ?? fallback.reorderQuantity,
+          maxStock: found.maxStock ?? fallback.maxStock,
         },
       ];
     }

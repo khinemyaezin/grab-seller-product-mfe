@@ -22,13 +22,15 @@ function pricingLinesEqual(
   if (a.length !== b.length) return false;
   return a.every((line, index) => {
     const other = b[index];
+    const { sku, amount, currencyCode, title, minQuantity, maxQuantity } = line;
+
     return (
-      line.sku === other.sku &&
-      line.amount === other.amount &&
-      line.currencyCode === other.currencyCode &&
-      (line.title ?? "") === (other.title ?? "") &&
-      (line.minQuantity ?? null) === (other.minQuantity ?? null) &&
-      (line.maxQuantity ?? null) === (other.maxQuantity ?? null)
+      sku === other.sku &&
+      amount === other.amount &&
+      currencyCode === other.currencyCode &&
+      (title ?? "") === (other.title ?? "") &&
+      (minQuantity ?? null) === (other.minQuantity ?? null) &&
+      (maxQuantity ?? null) === (other.maxQuantity ?? null)
     );
   });
 }
@@ -59,8 +61,16 @@ export function usePricingLinesSync() {
           sku.trim() !== ""
             ? existing.find((line) => line.sku === sku)
             : undefined;
-        const base = bySku ?? existing[index] ?? defaultPricingLine(sku);
-        return { ...base, sku };
+        const fallback = defaultPricingLine(sku);
+        const found = (bySku ?? existing[index] ?? {}) as Partial<PricingLineFormValue>;
+        return {
+          sku,
+          title: found.title ?? fallback.title,
+          currencyCode: found.currencyCode ?? fallback.currencyCode,
+          amount: found.amount ?? fallback.amount,
+          minQuantity: found.minQuantity ?? fallback.minQuantity,
+          maxQuantity: found.maxQuantity ?? fallback.maxQuantity,
+        };
       });
     } else {
       const sku = standaloneSku ?? "";
@@ -68,8 +78,16 @@ export function usePricingLinesSync() {
         sku.trim() !== ""
           ? existing.find((line) => line.sku === sku)
           : undefined;
-      const base = bySku ?? existing[0] ?? defaultPricingLine(sku);
-      next = [{ ...base, sku }];
+      const fallback = defaultPricingLine(sku);
+      const found = (bySku ?? existing[0] ?? {}) as Partial<PricingLineFormValue>;
+      next = [{
+        sku,
+        title: found.title ?? fallback.title,
+        currencyCode: found.currencyCode ?? fallback.currencyCode,
+        amount: found.amount ?? fallback.amount,
+        minQuantity: found.minQuantity ?? fallback.minQuantity,
+        maxQuantity: found.maxQuantity ?? fallback.maxQuantity,
+      }];
     }
 
     if (!pricingLinesEqual(existing, next)) {

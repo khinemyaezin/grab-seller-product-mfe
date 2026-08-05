@@ -141,6 +141,8 @@ export default function ProductNewForm({
     );
   };
 
+  console.log(watch());
+
   return (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
