@@ -6,6 +6,7 @@ import {
 } from "react-hook-form";
 import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
 import type { PricingLineFormValue, ProductFormValue } from "@/features/products/types";
+import { FieldDescription, FieldLabel, FieldLegend, FieldSet } from "@khinemyaezin/seller-ui/components/field";
 
 const DEFAULT_CURRENCY = "USD";
 
@@ -95,15 +96,22 @@ export function PricingLineSlot({ sku, lineIndex }: PricingLineSlotProps) {
   );
 
   return (
-    <ExtensionSlot
-      name={PRODUCT_EXTENSION_SLOTS.CREATE_PRICING}
-      props={{
-        sku,
-        value: line,
-        onChange: handleChange,
-        errors,
-        onBlur: handleBlur,
-      }}
-    />
+    <FieldSet>
+      <FieldLegend>Pricing</FieldLegend>
+      <FieldDescription>Set the price buyers will pay for this product.</FieldDescription>
+
+      <div className="max-w-sm">
+        <ExtensionSlot
+          name={PRODUCT_EXTENSION_SLOTS.CREATE_PRICING}
+          props={{
+            sku,
+            value: line,
+            onChange: handleChange,
+            errors,
+            onBlur: handleBlur,
+          }}
+        />
+      </div>
+    </FieldSet>
   );
 }

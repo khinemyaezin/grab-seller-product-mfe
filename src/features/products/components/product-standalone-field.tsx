@@ -18,7 +18,7 @@ export default function ProductStandaloneVariantField({ ...props }: UseControlle
                     <FieldError errors={[fieldState.error]} />
                 )}
             </Field>
-            <PricingLineSlot sku={field.value ?? ""} lineIndex={0} />
+            {/* <PricingLineSlot sku={field.value ?? ""} lineIndex={0} /> */}
         </div>
     );
 }

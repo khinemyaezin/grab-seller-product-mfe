@@ -3,17 +3,20 @@ import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { generateSlug } from "@/features/products/utils";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
-import { Card, CardContent, CardFooter } from "@khinemyaezin/seller-ui/components/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@khinemyaezin/seller-ui/components/card";
 import { Separator } from "@khinemyaezin/seller-ui/components/separator";
-import { Button, ButtonStatus } from "@khinemyaezin/seller-ui/components/index";
+import { Button, ButtonStatus, Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from "@khinemyaezin/seller-ui/components/index";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
 import {
   ProductFormValue,
   CreateSellableProductRequest,
 } from "../types";
 import type { ProductLifecycleEvent } from "../types";
+import { PricingLineSlot } from "./pricing-line-slot";
+import { HateoasLink } from "@khinemyaezin/seller-api";
 
 export type ProductNewFormProps = {
+  link: HateoasLink,
   onLifecycleEvent?: (event: ProductLifecycleEvent) => void
 };
 
@@ -108,6 +111,7 @@ function buildCreatePayload(values: ProductFormValue): CreateSellableProductRequ
 }
 
 export default function ProductNewForm({
+  link,
   onLifecycleEvent
 }: ProductNewFormProps) {
   const form = useForm<ProductFormValue>({
@@ -115,18 +119,13 @@ export default function ProductNewForm({
     mode: "onSubmit",
   });
 
-  const { handleSubmit, reset, formState: { isDirty } } = form;
+  const { handleSubmit, reset, watch, formState: { isDirty } } = form;
   const createSellableProductApi = useCreateSellableProductMutation();
 
   const handleFormSubmit = (values: ProductFormValue) => {
     const payload = buildCreatePayload(values);
-    if (payload.pricingLines.length === 0 || payload.inventoryLines.length === 0) {
-      onLifecycleEvent?.({ type: "createFailed" });
-      return;
-    }
-
     createSellableProductApi.mutate(
-      { link: undefined!, request: payload },
+      { link: link, request: payload },
       {
         onSuccess: () => {
           onLifecycleEvent?.({ type: "created" });
@@ -134,7 +133,6 @@ export default function ProductNewForm({
           reset();
         },
         onError: (error) => {
-          console.error("Failed to create sellable product:", error);
           onLifecycleEvent?.({ type: "createFailed" });
           createSellableProductApi.reset();
         },
@@ -144,42 +142,61 @@ export default function ProductNewForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="grid gap-6">
-        <Card>
-          <CardContent>
-            <ProductBasicFieldSet />
-            <Separator className="my-6" />
-            <ProductVariationFieldSet />
-          </CardContent>
-          {isDirty && (
-            <CardFooter className="flex justify-end">
-              <ButtonGroup>
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
+
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+            <Card className="flex-1 w-full">
+              <CardContent>
+                <ProductBasicFieldSet />
+              </CardContent>
+              <Separator />
+              <CardContent>
+                <ProductVariationFieldSet />
+              </CardContent>
+            </Card>
+
+          <Card>
+            <CardContent>
+              <PricingLineSlot sku={watch("product.standaloneVariant.sku") ?? ""} lineIndex={0} />
+            </CardContent>
+          </Card>
+        </div>
+        {isDirty && (
+          <div className="flex w-full max-w-md flex-col gap-6">
+            <Item variant="outline">
+              <ItemContent>
+                <ItemTitle>Unsaved changes</ItemTitle>
+              </ItemContent>
+              <ItemActions>
                 <ButtonGroup>
-                  <Button
-                    type="submit"
-                    disabled={createSellableProductApi.isPending}
-                  >
-                    <ButtonStatus
-                      status={
-                        createSellableProductApi.isPending
-                          ? "pending"
-                          : createSellableProductApi.isSuccess
-                            ? "success"
-                            : createSellableProductApi.isError
-                              ? "failed"
-                              : "idle"
-                      }
-                      pendingLabel="Saving…"
-                      successLabel="Saved"
+                  <ButtonGroup>
+                    <Button
+                      type="submit"
+                      disabled={createSellableProductApi.isPending}
                     >
-                      Save
-                    </ButtonStatus>
-                  </Button>
+                      <ButtonStatus
+                        status={
+                          createSellableProductApi.isPending
+                            ? "pending"
+                            : createSellableProductApi.isSuccess
+                              ? "success"
+                              : createSellableProductApi.isError
+                                ? "failed"
+                                : "idle"
+                        }
+                        pendingLabel="Saving…"
+                        successLabel="Saved"
+                      >
+                        Save
+                      </ButtonStatus>
+                    </Button>
+                  </ButtonGroup>
                 </ButtonGroup>
-              </ButtonGroup>
-            </CardFooter>
-          )}
-        </Card>
+              </ItemActions>
+            </Item>
+          </div>
+
+        )}
       </form>
     </FormProvider>
   );

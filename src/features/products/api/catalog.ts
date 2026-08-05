@@ -15,7 +15,7 @@ import type {
   ProductSearchRequest,
   ProductSearchResponse,
 } from "@/features/products/types";
-import { api, resolveUrlTemplate } from "@khinemyaezin/seller-api";
+import { api } from "@khinemyaezin/seller-api";
 import type { HateoasLink } from "@khinemyaezin/seller-api";
 
 export const catalogService = {

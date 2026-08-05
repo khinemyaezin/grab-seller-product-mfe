@@ -14,7 +14,7 @@ export type ProductCreatePageProps = {};
 
 export default function NewProductPage({ }: ProductCreatePageProps) {
   const platform = usePlatform();
-  const canCreate = !!useCatalogLink("createProduct");
+  const createSellableProductLink = useCatalogLink("createSellableProduct");
 
   const toast = (type: "success" | "error", message: string) =>
     platform?.events.publish("shell:toast:v1", { type, message, position: "top-center" });
@@ -31,7 +31,7 @@ export default function NewProductPage({ }: ProductCreatePageProps) {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl p-6">
+    <div className="container mx-auto max-w-4xl p-6">
       <Header
         title="Add Product"
         description="Add a new product to your seller catalog."
@@ -44,8 +44,9 @@ export default function NewProductPage({ }: ProductCreatePageProps) {
           </Button>
         </ButtonGroup>
       </Header>
-      {canCreate && (
+      {createSellableProductLink && (
         <ProductNewForm
+          link={createSellableProductLink}
           onLifecycleEvent={handleEvent}
         />
       )}

@@ -10,6 +10,7 @@ export interface CatalogRoot {
   searchVariantTypes?: HateoasLink
   searchVariantOptions?: HateoasLink
   generateVariationMatrix?: HateoasLink
+  createSellableProduct?: HateoasLink
 }
 
 export type VariationMatrixResponseVariation = {
