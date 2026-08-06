@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   useController,
   useFormContext,
@@ -6,13 +6,14 @@ import {
 } from "react-hook-form";
 import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
 import type { PricingLineFormValue, ProductFormValue } from "@/features/products/types";
-import { FieldDescription, FieldLabel, FieldLegend, FieldSet } from "@khinemyaezin/seller-ui/components/field";
+import { FieldDescription, FieldLegend, FieldSet } from "@khinemyaezin/seller-ui/components/field";
 
 const DEFAULT_CURRENCY = "USD";
 
 export type PricingLineSlotProps = {
   sku: string;
-  lineIndex: number;
+  lineIndex?: number;
+  fieldName?: string;
 };
 
 function defaultPricingLine(sku: string): PricingLineFormValue {
@@ -38,21 +39,23 @@ const currencyRules = {
   required: "Currency is required",
 };
 
-export function PricingLineSlot({ sku, lineIndex }: PricingLineSlotProps) {
+export function PricingLineSlot({ sku, lineIndex, fieldName }: PricingLineSlotProps) {
   const { control, setValue, trigger } = useFormContext<ProductFormValue>();
+  const basePath = fieldName ?? `pricingLines.${lineIndex}`;
+
   const watchedLine = useWatch({
     control,
-    name: `pricingLines.${lineIndex}`,
+    name: basePath as any,
   });
 
   const amountField = useController({
     control,
-    name: `pricingLines.${lineIndex}.amount`,
+    name: `${basePath}.amount` as any,
     rules: amountRules,
   });
   const currencyField = useController({
     control,
-    name: `pricingLines.${lineIndex}.currencyCode`,
+    name: `${basePath}.currencyCode` as any,
     rules: currencyRules,
   });
 
@@ -69,7 +72,7 @@ export function PricingLineSlot({ sku, lineIndex }: PricingLineSlotProps) {
   const handleChange = useCallback(
     (next: PricingLineFormValue) => {
       setValue(
-        `pricingLines.${lineIndex}`,
+        basePath as any,
         {
           ...next,
           sku: sku || next.sku || "",
@@ -77,14 +80,14 @@ export function PricingLineSlot({ sku, lineIndex }: PricingLineSlotProps) {
         { shouldDirty: true, shouldValidate: true },
       );
     },
-    [lineIndex, setValue, sku],
+    [basePath, setValue, sku],
   );
 
   const handleBlur = useCallback(
     (field: "amount" | "currencyCode") => {
-      void trigger(`pricingLines.${lineIndex}.${field}`);
+      void trigger(`${basePath}.${field}` as any);
     },
-    [lineIndex, trigger],
+    [basePath, trigger],
   );
 
   const errors = useMemo(

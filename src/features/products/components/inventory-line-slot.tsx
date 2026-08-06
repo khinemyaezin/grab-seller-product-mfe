@@ -10,7 +10,8 @@ import { FieldDescription, FieldLegend, FieldSet } from "@khinemyaezin/seller-ui
 
 export type InventoryLineSlotProps = {
   sku: string;
-  lineIndex: number;
+  lineIndex?: number;
+  fieldName?: string;
 };
 
 function defaultInventoryLine(sku: string): InventoryLineFormValue {
@@ -37,21 +38,23 @@ const quantityRules = {
   },
 };
 
-export function InventoryLineSlot({ sku, lineIndex }: InventoryLineSlotProps) {
+export function InventoryLineSlot({ sku, lineIndex, fieldName }: InventoryLineSlotProps) {
   const { control, setValue, trigger } = useFormContext<ProductFormValue>();
+  const basePath = fieldName ?? `inventoryLines.${lineIndex}`;
+
   const watchedLine = useWatch({
     control,
-    name: `inventoryLines.${lineIndex}`,
+    name: basePath as any,
   });
 
   const locationField = useController({
     control,
-    name: `inventoryLines.${lineIndex}.locationId`,
+    name: `${basePath}.locationId` as any,
     rules: locationRules,
   });
   const quantityField = useController({
     control,
-    name: `inventoryLines.${lineIndex}.initialQuantity`,
+    name: `${basePath}.initialQuantity` as any,
     rules: quantityRules,
   });
 
@@ -68,7 +71,7 @@ export function InventoryLineSlot({ sku, lineIndex }: InventoryLineSlotProps) {
   const handleChange = useCallback(
     (next: InventoryLineFormValue) => {
       setValue(
-        `inventoryLines.${lineIndex}`,
+        basePath as any,
         {
           ...next,
           sku: sku || next.sku || "",
@@ -79,14 +82,14 @@ export function InventoryLineSlot({ sku, lineIndex }: InventoryLineSlotProps) {
         setValue("inventoryLocationId", next.locationId, { shouldDirty: true });
       }
     },
-    [lineIndex, setValue, sku],
+    [basePath, setValue, sku],
   );
 
   const handleBlur = useCallback(
     (field: "locationId" | "initialQuantity" | "safetyStock") => {
-      void trigger(`inventoryLines.${lineIndex}.${field}`);
+      void trigger(`${basePath}.${field}` as any);
     },
-    [lineIndex, trigger],
+    [basePath, trigger],
   );
 
   const errors = useMemo(

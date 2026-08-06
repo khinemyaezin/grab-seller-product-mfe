@@ -73,21 +73,7 @@ export function usePricingLinesSync() {
         };
       });
     } else {
-      const sku = standaloneSku ?? "";
-      const bySku =
-        sku.trim() !== ""
-          ? existing.find((line) => line.sku === sku)
-          : undefined;
-      const fallback = defaultPricingLine(sku);
-      const found = (bySku ?? existing[0] ?? {}) as Partial<PricingLineFormValue>;
-      next = [{
-        sku,
-        title: found.title ?? fallback.title,
-        currencyCode: found.currencyCode ?? fallback.currencyCode,
-        amount: found.amount ?? fallback.amount,
-        minQuantity: found.minQuantity ?? fallback.minQuantity,
-        maxQuantity: found.maxQuantity ?? fallback.maxQuantity,
-      }];
+      next = [];
     }
 
     if (!pricingLinesEqual(existing, next)) {

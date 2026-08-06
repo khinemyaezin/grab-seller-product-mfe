@@ -79,24 +79,7 @@ export function useInventoryLinesSync() {
         };
       });
     } else {
-      const sku = standaloneSku ?? "";
-      const bySku =
-        sku.trim() !== ""
-          ? existing.find((line) => line.sku === sku)
-          : undefined;
-      const fallback = defaultInventoryLine(sku, fallbackLocation);
-      const found = (bySku ?? existing[0] ?? {}) as Partial<InventoryLineFormValue>;
-      next = [
-        {
-          sku,
-          locationId: found.locationId || fallbackLocation,
-          initialQuantity: found.initialQuantity ?? fallback.initialQuantity,
-          safetyStock: found.safetyStock ?? fallback.safetyStock,
-          reorderPoint: found.reorderPoint ?? fallback.reorderPoint,
-          reorderQuantity: found.reorderQuantity ?? fallback.reorderQuantity,
-          maxStock: found.maxStock ?? fallback.maxStock,
-        },
-      ];
+      next = [];
     }
 
     if (!inventoryLinesEqual(existing, next)) {

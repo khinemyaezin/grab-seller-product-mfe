@@ -8,7 +8,7 @@ export default function ProductStandaloneVariantField({ ...props }: UseControlle
         <div className="grid gap-4">
             <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="input-standalone-sku">SKU (Stock Keeping Unit)</FieldLabel>
-                <Input
+                <Input className="max-w-sm"
                     id="input-standalone-sku"
                     aria-invalid={fieldState.invalid}
                     {...field}

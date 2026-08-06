@@ -3,9 +3,9 @@ import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { generateSlug } from "@/features/products/utils";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@khinemyaezin/seller-ui/components/card";
+import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card";
 import { Separator } from "@khinemyaezin/seller-ui/components/separator";
-import { Button, ButtonStatus, Item, ItemActions, ItemContent, ItemDescription, ItemTitle } from "@khinemyaezin/seller-ui/components/index";
+import { Button, ButtonStatus, Item, ItemActions, ItemContent, ItemTitle } from "@khinemyaezin/seller-ui/components/index";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
 import {
   ProductFormValue,
@@ -33,11 +33,37 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
   variationTypes: [],
   pricingLines: [],
   inventoryLines: [],
+  standalonePricingLine: {
+    sku: "",
+    title: "",
+    currencyCode: "USD",
+    amount: 0,
+    minQuantity: null,
+    maxQuantity: null,
+  },
+  standaloneInventoryLine: {
+    sku: "",
+    locationId: "",
+    initialQuantity: 0,
+    safetyStock: 0,
+    reorderPoint: 0,
+    reorderQuantity: 0,
+    maxStock: "",
+  },
   inventoryLocationId: "",
 };
 
+const parseOptionalNumber = (val: string | number | null | undefined): number | undefined => {
+  if (val === "" || val == null) return undefined;
+  const num = Number(val);
+  return Number.isFinite(num) ? num : undefined;
+};
+
 function buildCreatePayload(values: ProductFormValue): CreateSellableProductRequest {
-  const mappedVariants = values.product.variants.length > 0
+  const hasVariations = values.product.variants.length > 0;
+  const sharedLocationId = values.inventoryLocationId?.trim() ?? "";
+
+  const mappedVariants = hasVariations
     ? values.product.variants.map((variant) => ({
       sku: variant.sku,
       variations: variant.variations.map((v) => ({
@@ -50,44 +76,36 @@ function buildCreatePayload(values: ProductFormValue): CreateSellableProductRequ
       variations: [],
     }];
 
-  const pricingLines = (values.pricingLines ?? [])
+  const rawPricingLines = hasVariations
+    ? (values.pricingLines ?? [])
+    : (values.standalonePricingLine ? [{ ...values.standalonePricingLine, sku: values.product.standaloneVariant.sku ?? "" }] : []);
+
+  const pricingLines = rawPricingLines
     .filter((line) => line.sku?.trim() && line.amount !== "" && line.currencyCode)
     .map((line) => ({
       sku: line.sku.trim(),
       title: line.title?.trim() || undefined,
       currencyCode: line.currencyCode,
       amount: Number(line.amount),
-      minQuantity: line.minQuantity ?? undefined,
-      maxQuantity: line.maxQuantity ?? undefined,
+      minQuantity: parseOptionalNumber(line.minQuantity),
+      maxQuantity: parseOptionalNumber(line.maxQuantity),
     }));
 
-  const sharedLocationId = values.inventoryLocationId?.trim() ?? "";
-  const inventoryLines = (values.inventoryLines ?? [])
+  const rawInventoryLines = hasVariations
+    ? (values.inventoryLines ?? [])
+    : (values.standaloneInventoryLine ? [{ ...values.standaloneInventoryLine, sku: values.product.standaloneVariant.sku ?? "" }] : []);
+
+  const inventoryLines = rawInventoryLines
     .filter((line) => line.sku?.trim())
-    .map((line) => {
-      const maxStockValue =
-        line.maxStock === "" || line.maxStock == null
-          ? undefined
-          : Number(line.maxStock);
-      return {
-        sku: line.sku.trim(),
-        locationId: (line.locationId || sharedLocationId).trim(),
-        initialQuantity: Number(line.initialQuantity) || 0,
-        safetyStock:
-          line.safetyStock === "" || line.safetyStock == null
-            ? undefined
-            : Number(line.safetyStock),
-        reorderPoint:
-          line.reorderPoint === "" || line.reorderPoint == null
-            ? undefined
-            : Number(line.reorderPoint),
-        reorderQuantity:
-          line.reorderQuantity === "" || line.reorderQuantity == null
-            ? undefined
-            : Number(line.reorderQuantity),
-        maxStock: Number.isFinite(maxStockValue) ? maxStockValue : undefined,
-      };
-    })
+    .map((line) => ({
+      sku: line.sku.trim(),
+      locationId: (line.locationId || sharedLocationId).trim(),
+      initialQuantity: Number(line.initialQuantity) || 0,
+      safetyStock: parseOptionalNumber(line.safetyStock),
+      reorderPoint: parseOptionalNumber(line.reorderPoint),
+      reorderQuantity: parseOptionalNumber(line.reorderQuantity),
+      maxStock: parseOptionalNumber(line.maxStock),
+    }))
     .filter((line) => !!line.locationId);
 
   return {
@@ -141,8 +159,6 @@ export default function ProductNewForm({
     );
   };
 
-  console.log(watch());
-
   return (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
@@ -161,14 +177,16 @@ export default function ProductNewForm({
           <div className="flex w-full flex-col gap-6 lg:max-w-sm">
             <Card>
               <CardContent>
-                <PricingLineSlot sku={watch("product.standaloneVariant.sku") ?? ""} lineIndex={0} />
+                <PricingLineSlot
+                  sku={watch("product.standaloneVariant.sku") ?? ""}
+                  fieldName="standalonePricingLine" />
               </CardContent>
             </Card>
             <Card>
               <CardContent>
                 <InventoryLineSlot
                   sku={watch("product.standaloneVariant.sku") ?? ""}
-                  lineIndex={0}
+                  fieldName="standaloneInventoryLine"
                 />
               </CardContent>
             </Card>

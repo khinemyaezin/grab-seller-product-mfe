@@ -24,6 +24,8 @@ export type ProductFormValue = {
   variationTypes: VariationType[];
   pricingLines: PricingLineFormValue[];
   inventoryLines: InventoryLineFormValue[];
+  standalonePricingLine?: PricingLineFormValue;
+  standaloneInventoryLine?: InventoryLineFormValue;
   inventoryLocationId?: string;
 };
 
