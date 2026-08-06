@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   useController,
   useFormContext,
@@ -12,8 +12,7 @@ const DEFAULT_CURRENCY = "USD";
 
 export type PricingLineSlotProps = {
   sku: string;
-  lineIndex?: number;
-  fieldName?: string;
+  name: string;
 };
 
 function defaultPricingLine(sku: string): PricingLineFormValue {
@@ -39,9 +38,9 @@ const currencyRules = {
   required: "Currency is required",
 };
 
-export function PricingLineSlot({ sku, lineIndex, fieldName }: PricingLineSlotProps) {
+export function PricingLineSlot({ sku, name }: PricingLineSlotProps) {
   const { control, setValue, trigger } = useFormContext<ProductFormValue>();
-  const basePath = fieldName ?? `pricingLines.${lineIndex}`;
+  const basePath = name;
 
   const watchedLine = useWatch({
     control,
@@ -58,6 +57,14 @@ export function PricingLineSlot({ sku, lineIndex, fieldName }: PricingLineSlotPr
     name: `${basePath}.currencyCode` as any,
     rules: currencyRules,
   });
+
+  useEffect(() => {
+    if (watchedLine && !watchedLine.currencyCode) {
+      setValue(`${basePath}.currencyCode` as any,
+        DEFAULT_CURRENCY,
+        { shouldDirty: true, shouldValidate: true });
+    }
+  }, [watchedLine, basePath, setValue]);
 
   const line = useMemo((): PricingLineFormValue => {
     if (watchedLine) {

@@ -36,7 +36,7 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
   standalonePricingLine: {
     sku: "",
     title: "",
-    currencyCode: "USD",
+    currencyCode: "",
     amount: 0,
     minQuantity: null,
     maxQuantity: null,
@@ -177,7 +177,7 @@ export default function ProductNewForm({
               <CardContent>
                 <PricingLineSlot
                   sku={watch("product.standaloneVariant.sku") ?? ""}
-                  fieldName="standalonePricingLine" />
+                  name="standalonePricingLine" />
               </CardContent>
             </Card>
             <Card>

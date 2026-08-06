@@ -33,7 +33,7 @@ export function VariantEditDialog({
             <PricingLineSlot
               key={`pricing:${lineIndex}:${sku}`}
               sku={sku}
-              lineIndex={lineIndex}
+              name={`pricingLines.${lineIndex}`}
             />
             <InventoryLineSlot
               key={`inventory:${lineIndex}:${sku}`}
