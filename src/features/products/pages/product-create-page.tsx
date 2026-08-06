@@ -6,7 +6,6 @@ import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
 import { usePlatform } from "@khinemyaezin/seller-ui";
 import { ArrowLeftIcon } from "lucide-react";
 import { Link } from "react-router";
-import type { HateoasLink } from "@khinemyaezin/seller-api";
 import type { ProductLifecycleEvent } from "@/features/products/types";
 import { useCatalogLink } from "../hooks/use-root";
 
@@ -31,7 +30,7 @@ export default function NewProductPage({ }: ProductCreatePageProps) {
   };
 
   return (
-    <div className="container mx-auto max-w-5xl p-6">
+    <div className="container mx-auto max-w-6xl p-6">
       <Header
         title="Add Product"
         description="Add a new product to your seller catalog."

@@ -35,7 +35,7 @@ export default function EditProductPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-6xl p-6">
+    <div className="container mx-auto max-w-5xl p-6">
       <Header
         title="Edit Product"
         description="Update your product details."

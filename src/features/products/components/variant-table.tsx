@@ -87,7 +87,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
         <TableCaption>List of generated product variants.</TableCaption>
         <TableHeader>
           <TableRow >
-            <TableHead className="w-[100px]">
+            <TableHead className="w-[50px]">
               <Checkbox
                 checked={selectedIndices.length === variantFields.length && variantFields.length > 0}
                 onCheckedChange={handleSelectAll}
@@ -153,37 +153,10 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                   <Controller
                     control={control}
                     name={`pricingLines.${lineIndex}.amount`}
-                    rules={{
-                      validate: (value) => {
-                        if (value === "" || value == null) return "Amount is required";
-                        if (Number(value) < 0) return "Must be 0 or greater";
-                        return true;
-                      },
-                    }}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <InputGroup>
-                          <InputGroupInput
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={field.value ?? ""}
-                            onChange={(event) => {
-                              const raw = event.target.value;
-                              field.onChange(raw === "" ? "" : Number(raw));
-                            }}
-                            onBlur={field.onBlur}
-                            aria-invalid={fieldState.invalid}
-                            placeholder="0.00"
-                          />
-                          <InputGroupAddon align="inline-end">
-                            <InputGroupText>{currencyCode}</InputGroupText>
-                          </InputGroupAddon>
-                        </InputGroup>
-                        {fieldState.error && (
-                          <FieldError>{fieldState.error?.message}</FieldError>
-                        )}
-                      </Field>
+                    render={({ field }) => (
+                      <span className="text-sm font-medium">
+                        {field.value !== "" && field.value != null ? `${currencyCode} ${field.value}` : "-"}
+                      </span>
                     )}
                   />
                 </TableCell>
@@ -191,34 +164,10 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                   <Controller
                     control={control}
                     name={`inventoryLines.${lineIndex}.initialQuantity`}
-                    rules={{
-                      validate: (value) => {
-                        if (value === "" || value == null) {
-                          return "Initial quantity is required";
-                        }
-                        if (Number(value) < 0) return "Must be 0 or greater";
-                        return true;
-                      },
-                    }}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={field.value ?? ""}
-                          onChange={(event) => {
-                            const raw = event.target.value;
-                            field.onChange(raw === "" ? "" : Number(raw));
-                          }}
-                          onBlur={field.onBlur}
-                          aria-invalid={fieldState.invalid}
-                          placeholder="0"
-                          className="w-full"
-                        />
-                        {fieldState.error && (
-                          <FieldError>{fieldState.error?.message}</FieldError>
-                        )}
-                      </Field>
+                    render={({ field }) => (
+                      <span className="text-sm font-medium">
+                        {field.value !== "" && field.value != null ? field.value : "-"}
+                      </span>
                     )}
                   />
                 </TableCell>

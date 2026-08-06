@@ -162,7 +162,6 @@ export default function ProductNewForm({
   return (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
-
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           <Card className="flex-1 w-full">
             <CardContent>
@@ -173,7 +172,6 @@ export default function ProductNewForm({
               <ProductVariationFieldSet />
             </CardContent>
           </Card>
-
           <div className="flex w-full flex-col gap-6 lg:max-w-sm">
             <Card>
               <CardContent>
@@ -193,40 +191,37 @@ export default function ProductNewForm({
           </div>
         </div>
         {isDirty && (
-          <div className="flex w-full max-w-md flex-col gap-6">
-            <Item variant="outline">
-              <ItemContent>
-                <ItemTitle>Unsaved changes</ItemTitle>
-              </ItemContent>
-              <ItemActions>
+          <Item className="w-full">
+            <ItemContent>
+              <ItemTitle>Unsaved changes</ItemTitle>
+            </ItemContent>
+            <ItemActions>
+              <ButtonGroup>
                 <ButtonGroup>
-                  <ButtonGroup>
-                    <Button
-                      type="submit"
-                      disabled={createSellableProductApi.isPending}
+                  <Button
+                    type="submit"
+                    disabled={createSellableProductApi.isPending}
+                  >
+                    <ButtonStatus
+                      status={
+                        createSellableProductApi.isPending
+                          ? "pending"
+                          : createSellableProductApi.isSuccess
+                            ? "success"
+                            : createSellableProductApi.isError
+                              ? "failed"
+                              : "idle"
+                      }
+                      pendingLabel="Saving…"
+                      successLabel="Saved"
                     >
-                      <ButtonStatus
-                        status={
-                          createSellableProductApi.isPending
-                            ? "pending"
-                            : createSellableProductApi.isSuccess
-                              ? "success"
-                              : createSellableProductApi.isError
-                                ? "failed"
-                                : "idle"
-                        }
-                        pendingLabel="Saving…"
-                        successLabel="Saved"
-                      >
-                        Save
-                      </ButtonStatus>
-                    </Button>
-                  </ButtonGroup>
+                      Save
+                    </ButtonStatus>
+                  </Button>
                 </ButtonGroup>
-              </ItemActions>
-            </Item>
-          </div>
-
+              </ButtonGroup>
+            </ItemActions>
+          </Item>
         )}
       </form>
     </FormProvider>
