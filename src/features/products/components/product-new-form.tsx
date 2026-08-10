@@ -11,6 +11,7 @@ import {
 } from "../types";
 import type { ProductLifecycleEvent } from "../types";
 import { PricingLineFullSlot } from "./pricing-full-slot";
+import { STANDALONE_PRICING_INSTANCE_ID } from "../constants/pricing-instance-id";
 import { HateoasLink } from "@khinemyaezin/seller-api";
 import { usePlatform } from "@khinemyaezin/seller-ui";
 import { useSlotProvider } from "@/extensions";
@@ -122,6 +123,7 @@ export default function ProductNewForm({ }: ProductNewFormProps) {
   const platform = usePlatform();
 
   const handleFormSubmit = async (_values: ProductFormValue) => {
+    console.log(_values)
     // const results = await validateAllSlots(events, list());
     // if (results.some((result) => !result.valid)) return;
 
@@ -156,17 +158,6 @@ export default function ProductNewForm({ }: ProductNewFormProps) {
               <ProductVariationFieldSet />
             </CardContent>
           </Card>
-          <div className="flex w-full flex-col gap-6 lg:max-w-sm">
-            <Card>
-              <CardContent>
-                <PricingLineFullSlot
-                  instanceId="product.create.pricing:standalone"
-                  skuFieldName="product.standaloneVariant.sku"
-                  pricingLineNum={0}
-                />
-              </CardContent>
-            </Card>
-          </div>
         </div>
         {isDirty && (
           <Item className="w-full">

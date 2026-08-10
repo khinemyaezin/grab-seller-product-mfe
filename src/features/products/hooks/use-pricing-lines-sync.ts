@@ -14,8 +14,14 @@ function toFormLine(
   };
 }
 
+function isSameLine(a: PricingLineFormValue, b: PricingLineFormValue): boolean {
+  return a.sku === b.sku
+    && a.currencyCode === b.currencyCode
+    && a.amount === b.amount;
+}
+
 export function usePricingLinesSync() {
-  const { control, getValues, setValue } = useFormContext<ProductFormValue>();
+  const { control, getValues } = useFormContext<ProductFormValue>();
   const platform = usePlatform();
   const events = platform?.events;
   const { append, update } = useFieldArray({ control, name: "pricingLines" });
@@ -27,11 +33,15 @@ export function usePricingLinesSync() {
       if (!event.payload.sku) return;
 
       const current = getValues("pricingLines") ?? [];
-      const index = current.findIndex(line => line.sku == event.payload.sku);
       const next = toFormLine(event.payload);
+      const index = current.findIndex(line => line.sku == next.sku);
 
       if (index >= 0) {
-        update(index, next)
+        if (isSameLine(current[index], next)) return;
+
+        update(index, next);
+      } else if (next.amount === 0) {
+        return;
       } else {
         append(next);
       }
@@ -45,5 +55,5 @@ export function usePricingLinesSync() {
     );
 
     return () => unsub();
-  }, [events, getValues, setValue, append, update]);
+  }, [events, getValues, append, update]);
 }

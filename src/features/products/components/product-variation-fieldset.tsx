@@ -8,6 +8,9 @@ import type { ProductFormValue } from "@/features/products/types";
 import ProductStandaloneVariantField from "./product-standalone-field";
 import { VariationTypeField } from "./product-variation-type-field";
 import { usePricingLinesSync } from "../hooks/use-pricing-lines-sync";
+import { usePricingSlotsSync } from "../hooks/use-pricing-slots-sync";
+import { usePricingLinesVariantSync } from "../hooks/use-pricing-lines-variant-sync";
+import { PricingStandaloneFieldSet } from "./pricing-standalone.fieldset";
 
 export default function ProductVariationFieldSet() {
     const { control, getValues } = useFormContext<ProductFormValue>();
@@ -18,6 +21,8 @@ export default function ProductVariationFieldSet() {
 
     useMatrixSync();
     usePricingLinesSync();
+    usePricingSlotsSync();
+    usePricingLinesVariantSync();
 
     const handleAddType = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -37,7 +42,9 @@ export default function ProductVariationFieldSet() {
                             rules={{
                                 required: "SKU is required"
                             }} />
+                        <PricingStandaloneFieldSet/>
                     </FieldGroup>
+
                 )}
                 {fields.length !== 0 && (
                     <FieldGroup className="gap-0">

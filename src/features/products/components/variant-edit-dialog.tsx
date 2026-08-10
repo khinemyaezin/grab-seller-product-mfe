@@ -5,6 +5,7 @@ import {
   DialogTitle,
 } from "@khinemyaezin/seller-ui/components/dialog";
 import { PricingLineFullSlot } from "./pricing-full-slot";
+import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
 
 export type VariantEditDialogProps = {
   open: boolean;
@@ -28,9 +29,7 @@ export function VariantEditDialog({
         {open ? (
           <div className="flex flex-col gap-6">
             <PricingLineFullSlot
-              instanceId={`product.create.pricing:${lineIndex}`}
-              skuFieldName={`product.variants.${lineIndex}.sku`}
-              pricingLineNum={lineIndex}
+              instanceId={pricingInstanceId(lineIndex)}
             />
           </div>
         ) : null}

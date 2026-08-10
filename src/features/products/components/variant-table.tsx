@@ -16,6 +16,7 @@ import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
 import type { ProductFormValue } from "@/features/products/types";
 import { VariantEditDialog } from "./variant-edit-dialog";
 import { PricingInlineSlot } from "./pricing-inline-slot";
+import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
 
 type VariantTableProps = {
   onAllVariantsDeleted?: () => void;
@@ -148,9 +149,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                 </TableCell>
                 <TableCell className="px-4 py-2">
                   <PricingInlineSlot
-                    instanceId={`product.create.pricing:${index}`}
-                    skuFieldName={`product.variants.${index}.sku`}
-                    pricingLineNum={index}
+                    instanceId={pricingInstanceId(index)}
                   />
                 </TableCell>
               </TableRow>
