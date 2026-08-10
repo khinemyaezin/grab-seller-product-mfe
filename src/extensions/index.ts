@@ -7,3 +7,15 @@ export {
 } from "./extension-registry";
 export { default as ExtensionProvider } from "./ExtensionProvider";
 export { default as ExtensionSlot } from "./ExtensionSlot";
+export {
+  SlotProvider,
+  useSlotProvider,
+  type RegisteredSlot,
+  type SlotProviderApi,
+  type SlotProviderProps,
+} from "./slot-provider";
+export {
+  requestValidate,
+  validateAllSlots,
+  type SlotValidateResult,
+} from "./validate-all-slots";

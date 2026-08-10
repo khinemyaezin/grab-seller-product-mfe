@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Input } from "@khinemyaezin/seller-ui/components/input";
-import { InputGroup, InputGroupAddon, InputGroupText, InputGroupInput } from "@khinemyaezin/seller-ui/components/input-group";
 import { Button } from "@khinemyaezin/seller-ui/components/button";
 import {
   Table,
@@ -16,6 +15,7 @@ import { Checkbox } from "@khinemyaezin/seller-ui/components/checkbox";
 import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
 import type { ProductFormValue } from "@/features/products/types";
 import { VariantEditDialog } from "./variant-edit-dialog";
+import { PricingInlineSlot } from "./pricing-inline-slot";
 
 type VariantTableProps = {
   onAllVariantsDeleted?: () => void;
@@ -35,7 +35,6 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
     control,
     name: "product.variants",
   });
-  const pricingLines = useWatch({ control, name: "pricingLines" }) ?? [];
 
   const variantFields = useMemo(() =>
     fields
@@ -96,12 +95,10 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
             <TableHead>Price</TableHead>
-            <TableHead>Stock</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {variantFields.map(({ field: variant, index }, lineIndex) => {
-            const currencyCode = pricingLines[lineIndex]?.currencyCode ?? "USD";
             return (
               <TableRow
                 key={variant.matrixKey}
@@ -150,25 +147,10 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                   />
                 </TableCell>
                 <TableCell className="px-4 py-2">
-                  <Controller
-                    control={control}
-                    name={`pricingLines.${lineIndex}.amount`}
-                    render={({ field }) => (
-                      <span className="text-sm font-medium">
-                        {field.value !== "" && field.value != null ? `${currencyCode} ${field.value}` : "-"}
-                      </span>
-                    )}
-                  />
-                </TableCell>
-                <TableCell className="px-4 py-2">
-                  <Controller
-                    control={control}
-                    name={`inventoryLines.${lineIndex}.initialQuantity`}
-                    render={({ field }) => (
-                      <span className="text-sm font-medium">
-                        {field.value !== "" && field.value != null ? field.value : "-"}
-                      </span>
-                    )}
+                  <PricingInlineSlot
+                    instanceId={`product.create.pricing:${index}`}
+                    skuFieldName={`product.variants.${index}.sku`}
+                    pricingLineNum={index}
                   />
                 </TableCell>
               </TableRow>
@@ -183,7 +165,6 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
           if (!open) setSetupTarget(null);
         }}
         variantName={setupTarget?.variantName ?? ""}
-        sku={setupTarget?.sku ?? ""}
         lineIndex={setupTarget?.lineIndex ?? 0}
       />
     </div>

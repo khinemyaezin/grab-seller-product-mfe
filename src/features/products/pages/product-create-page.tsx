@@ -1,5 +1,6 @@
 
 import ProductNewForm from "@/features/products/components/product-new-form";
+import { SlotProvider } from "@/extensions";
 import { Header } from "@khinemyaezin/seller-ui/layout/header";
 import { Button } from "@khinemyaezin/seller-ui/components/index";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
@@ -16,7 +17,7 @@ export default function NewProductPage({ }: ProductCreatePageProps) {
   const createSellableProductLink = useCatalogLink("createSellableProduct");
 
   const toast = (type: "success" | "error", message: string) =>
-    platform?.events.publish("shell:toast:v1", { type, message, position: "top-center" });
+    platform?.events.emit("shell:toast:v1", { type, message, position: "top-center" });
 
   const handleEvent = (event: ProductLifecycleEvent) => {
     switch (event.type) {
@@ -44,10 +45,12 @@ export default function NewProductPage({ }: ProductCreatePageProps) {
         </ButtonGroup>
       </Header>
       {createSellableProductLink && (
-        <ProductNewForm
-          link={createSellableProductLink}
-          onLifecycleEvent={handleEvent}
-        />
+        <SlotProvider>
+          <ProductNewForm
+            link={createSellableProductLink}
+            onLifecycleEvent={handleEvent}
+          />
+        </SlotProvider>
       )}
     </div>
   );

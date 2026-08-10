@@ -34,24 +34,7 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
     variationTypes: [],
     pricingLines: [],
     inventoryLines: [],
-    standalonePricingLine: {
-      sku: "",
-      title: "",
-      currencyCode: "USD",
-      amount: 0,
-      minQuantity: null,
-      maxQuantity: null,
-    },
-    standaloneInventoryLine: {
-      sku: "",
-      locationId: "",
-      initialQuantity: 0,
-      safetyStock: 0,
-      reorderPoint: 0,
-      reorderQuantity: 0,
-      maxStock: "",
-    },
-    inventoryLocationId: "",
+   
 };
 
 function determineUpdateIntent({
@@ -164,8 +147,7 @@ function transformProductToFormValue(apiData: GetFullProductResponse): ProductFo
             ]
         })),
         pricingLines: [],
-        inventoryLines: [],
-        inventoryLocationId: "",
+        inventoryLines: []
     };
 }
 

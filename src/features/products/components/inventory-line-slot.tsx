@@ -79,7 +79,7 @@ export function InventoryLineSlot({ sku, lineIndex, fieldName }: InventoryLineSl
         { shouldDirty: true, shouldValidate: true },
       );
       if (next.locationId) {
-        setValue("inventoryLocationId", next.locationId, { shouldDirty: true });
+        //setValue("inventoryLocationId", next.locationId, { shouldDirty: true });
       }
     },
     [basePath, setValue, sku],

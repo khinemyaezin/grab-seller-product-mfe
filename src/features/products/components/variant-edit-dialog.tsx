@@ -4,14 +4,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@khinemyaezin/seller-ui/components/dialog";
-import { PricingLineSlot } from "./pricing-line-slot";
-import { InventoryLineSlot } from "./inventory-line-slot";
+import { PricingLineFullSlot } from "./pricing-full-slot";
 
 export type VariantEditDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   variantName: string;
-  sku: string;
   lineIndex: number;
 };
 
@@ -19,7 +17,6 @@ export function VariantEditDialog({
   open,
   onOpenChange,
   variantName,
-  sku,
   lineIndex,
 }: VariantEditDialogProps) {
   return (
@@ -30,15 +27,10 @@ export function VariantEditDialog({
         </DialogHeader>
         {open ? (
           <div className="flex flex-col gap-6">
-            <PricingLineSlot
-              key={`pricing:${lineIndex}:${sku}`}
-              sku={sku}
-              name={`pricingLines.${lineIndex}`}
-            />
-            <InventoryLineSlot
-              key={`inventory:${lineIndex}:${sku}`}
-              sku={sku}
-              lineIndex={lineIndex}
+            <PricingLineFullSlot
+              instanceId={`product.create.pricing:${lineIndex}`}
+              skuFieldName={`product.variants.${lineIndex}.sku`}
+              pricingLineNum={lineIndex}
             />
           </div>
         ) : null}

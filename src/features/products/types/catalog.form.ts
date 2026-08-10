@@ -2,11 +2,8 @@ import type { Product, ProductStatus, VariationType } from "./catalog.model";
 
 export type PricingLineFormValue = {
   sku: string;
-  title?: string;
   currencyCode: string;
-  amount: number | "";
-  minQuantity?: number | null;
-  maxQuantity?: number | null;
+  amount: number | ""
 };
 
 export type InventoryLineFormValue = {
@@ -24,9 +21,6 @@ export type ProductFormValue = {
   variationTypes: VariationType[];
   pricingLines: PricingLineFormValue[];
   inventoryLines: InventoryLineFormValue[];
-  standalonePricingLine?: PricingLineFormValue;
-  standaloneInventoryLine?: InventoryLineFormValue;
-  inventoryLocationId?: string;
 };
 
 export type ProductFilterFormValue = {

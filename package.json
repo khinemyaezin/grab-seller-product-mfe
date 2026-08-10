@@ -14,7 +14,7 @@
     "@hookform/resolvers": "5.2.2",
     "@khinemyaezin/seller-api": "file:../grab-seller-shared/packages/seller-api",
     "@khinemyaezin/seller-contracts": "file:../grab-seller-shared/packages/seller-contracts",
-    "@khinemyaezin/seller-ui": "^1.0.1-canary-16cfab0",
+    "@khinemyaezin/seller-ui": "file:../grab-seller-shared/packages/seller-ui",
     "@tailwindcss/vite": "^4.3.2",
     "@tanstack/react-query": "5.99.2",
     "lodash": "4.18.1",
