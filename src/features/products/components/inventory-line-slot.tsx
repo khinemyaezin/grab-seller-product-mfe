@@ -4,7 +4,8 @@ import {
   useFormContext,
   useWatch,
 } from "react-hook-form";
-import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
+import { ExtensionSlot } from "@khinemyaezin/seller-ui";
+import { PRODUCT_EXTENSION_SLOTS } from "@khinemyaezin/seller-contracts";
 import type { InventoryLineFormValue, ProductFormValue } from "@/features/products/types";
 import { FieldDescription, FieldLegend, FieldSet } from "@khinemyaezin/seller-ui/components/field";
 

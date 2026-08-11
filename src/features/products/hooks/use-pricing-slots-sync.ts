@@ -3,6 +3,7 @@ import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { usePlatform } from "@khinemyaezin/seller-ui";
 import { PricingLineFormValue, ProductFormValue } from "../types";
 import { pricingInstanceId, STANDALONE_PRICING_INSTANCE_ID } from "../constants/pricing-instance-id";
+import { EventEnvelope, PricingPayload } from "@khinemyaezin/seller-contracts";
 
 type PricingSlotDescriptor = {
   instanceId: string;
@@ -26,7 +27,7 @@ export function usePricingSlotsSync() {
   const { control, getValues } = useFormContext<ProductFormValue>();
   const platform = usePlatform();
   const events = platform?.events;
-  const { update } = useFieldArray({ control, name: "pricingLines" });
+  const { update, append } = useFieldArray({ control, name: "pricingLines" });
 
   const variants = useWatch({ control, name: "product.variants", defaultValue: [] });
   const standaloneSku = useWatch({ control, name: "product.standaloneVariant.sku", defaultValue: "" });
@@ -82,4 +83,38 @@ export function usePricingSlotsSync() {
       });
     }
   }, [slots, events, getValues]);
+
+  useEffect(() => {
+    if (!events) return;
+
+    const unsub = events.subscribe("extension:pricing:updated:v1", (event: EventEnvelope<PricingPayload>) => {
+      if (!event.payload.sku) return;
+
+      const current = getValues("pricingLines") ?? [];
+      const next = {
+        sku: event.payload.sku,
+        currencyCode: event.payload.currencyCode,
+        amount: event.payload.amount
+      };
+      const index = current.findIndex(line => line.sku == next.sku);
+
+      if (index >= 0) {
+        update(index, next);
+      } else if (next.amount === 0) {
+        return;
+      } else {
+        append(next);
+      }
+
+      events.setState("extension:pricing:hydrate:v1", {
+        producerId: "host",
+        instanceId: event.instanceId,
+        payload: next,
+      });
+    },
+    );
+
+    return () => unsub();
+  }, [events, getValues, append, update]);
+
 }

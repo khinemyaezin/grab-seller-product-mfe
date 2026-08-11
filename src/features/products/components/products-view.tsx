@@ -26,7 +26,7 @@ export default function ProductsView({ link, canCreate, onLifecycleEvent }: Prod
         <ProductsFilter onChange={updateCriteria} />
           </div>
            {canCreate && (
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" asChild>
               <Link to="new">Add product</Link>
             </Button>
           )}

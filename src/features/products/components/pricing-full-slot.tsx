@@ -1,4 +1,5 @@
-import { ExtensionSlot, PRODUCT_EXTENSION_SLOTS } from "@/extensions";
+import { PRODUCT_EXTENSION_SLOTS } from "@khinemyaezin/seller-contracts";
+import { ExtensionSlot } from "@khinemyaezin/seller-ui";
 import {
   FieldDescription,
   FieldLegend,

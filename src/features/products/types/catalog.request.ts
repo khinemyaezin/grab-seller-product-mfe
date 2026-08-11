@@ -42,6 +42,11 @@ export type CreateProductRequest = {
   variantTypes: CreateProductRequestVariationType[];
 };
 
+export type CreateSellableProductRequest = CreateProductRequest & {
+  pricingLines : CreateSellableProductPricingLine[],
+  inventoryLines: CreateSellableProductInventoryLine[]
+}
+
 export type CreateSellableProductPricingLine = {
   sku: string;
   title?: string;
@@ -67,13 +72,6 @@ export type CreateSellableProductInventoryLine = {
   maxStock?: number;
 };
 
-export type CreateSellableProductRequest = {
-  product: CreateProductRequestProduct;
-  variantTypes: CreateProductRequestVariationType[];
-  pricingLines: CreateSellableProductPricingLine[];
-  inventoryLines: CreateSellableProductInventoryLine[];
-  idempotencyKey?: string;
-};
 
 export type UPDATE_INTENT = "LEAVE_AS_IS" | "FULL_SYNC" | "COLLAPSE_TO_STANDALONE";
 

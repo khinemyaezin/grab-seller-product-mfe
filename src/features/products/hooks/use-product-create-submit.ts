@@ -1,0 +1,71 @@
+import { useCallback } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import type { HateoasLink } from "@khinemyaezin/seller-api";
+import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
+import type { ButtonStatusState } from "@khinemyaezin/seller-ui/components/index";
+import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
+import { buildCreateSellableProductRequest } from "@/features/products/adapters/create-sellable-product-request";
+import { pricingLineContribution } from "@/features/products/adapters/pricing-lines";
+import { syncValidatedLines } from "@/features/products/adapters/slot-lines";
+import type {
+  ProductFormValue,
+  ProductLifecycleEvent,
+} from "@/features/products/types";
+
+export type UseProductCreateSubmitOptions = {
+  form: UseFormReturn<ProductFormValue>;
+  link: HateoasLink;
+  onLifecycleEvent?: (event: ProductLifecycleEvent) => void;
+};
+
+export type UseProductCreateSubmitResult = {
+  submit: () => Promise<void>;
+  isBusy: boolean;
+  status: ButtonStatusState;
+};
+
+export function useProductCreateSubmit({
+  form,
+  link,
+  onLifecycleEvent,
+}: UseProductCreateSubmitOptions): UseProductCreateSubmitResult {
+  const { validate, isValidating } = useValidateAllSlots();
+  const mutation = useCreateSellableProductMutation();
+  const { mutate, reset: resetMutation } = mutation;
+
+  const submit = useCallback(async () => {
+    const results = await validate();
+    if (results.some((result) => !result.valid)) return;
+
+    syncValidatedLines(form, pricingLineContribution, results);
+
+    mutate(
+      { link, request: buildCreateSellableProductRequest(form.getValues()) },
+      {
+        onSuccess: () => {
+          onLifecycleEvent?.({ type: "created" });
+          resetMutation();
+          form.reset();
+        },
+        onError: () => {
+          onLifecycleEvent?.({ type: "createFailed" });
+          resetMutation();
+        },
+      },
+    );
+  }, [form, link, mutate, onLifecycleEvent, resetMutation, validate]);
+
+  const status: ButtonStatusState = mutation.isPending
+    ? "pending"
+    : mutation.isSuccess
+      ? "success"
+      : mutation.isError
+        ? "failed"
+        : "idle";
+
+  return {
+    submit,
+    isBusy: mutation.isPending || isValidating,
+    status,
+  };
+}

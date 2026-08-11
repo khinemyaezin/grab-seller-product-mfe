@@ -1,10 +1,9 @@
 
 import ProductNewForm from "@/features/products/components/product-new-form";
-import { SlotProvider } from "@/extensions";
 import { Header } from "@khinemyaezin/seller-ui/layout/header";
 import { Button } from "@khinemyaezin/seller-ui/components/index";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
-import { usePlatform } from "@khinemyaezin/seller-ui";
+import { SlotProvider, usePlatform } from "@khinemyaezin/seller-ui";
 import { ArrowLeftIcon } from "lucide-react";
 import { Link } from "react-router";
 import type { ProductLifecycleEvent } from "@/features/products/types";
