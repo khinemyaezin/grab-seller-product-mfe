@@ -9,6 +9,7 @@ import { ProductFormValue } from "../types";
 import type { ProductLifecycleEvent } from "../types";
 import { HateoasLink } from "@khinemyaezin/seller-api";
 import { useProductCreateSubmit } from "@/features/products/hooks/use-product-create-submit";
+import { PricingStandalone } from "./pricing-standalone";
 
 export type ProductNewFormProps = {
   link: HateoasLink,
@@ -35,7 +36,7 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
     mode: "onSubmit",
   });
 
-  const { handleSubmit, formState: { isDirty } } = form;
+  const { handleSubmit, watch, formState: { isDirty } } = form;
   const { submit, isBusy, status } = useProductCreateSubmit({
     form,
     link,
@@ -45,12 +46,15 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
   return (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit(submit)}>
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col gap-6">
           <Card className="flex-1 w-full">
             <CardContent>
               <ProductBasicFieldSet />
             </CardContent>
             <Separator />
+          </Card>
+          <PricingStandalone />
+          <Card>
             <CardContent>
               <ProductVariationFieldSet />
             </CardContent>

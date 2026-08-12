@@ -11,14 +11,14 @@ export type VariantEditDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   variantName: string;
-  lineIndex: number;
+  matrixKey: string;
 };
 
 export function VariantEditDialog({
   open,
   onOpenChange,
   variantName,
-  lineIndex,
+  matrixKey,
 }: VariantEditDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -29,7 +29,7 @@ export function VariantEditDialog({
         {open ? (
           <div className="flex flex-col gap-6">
             <PricingLineFullSlot
-              instanceId={pricingInstanceId(lineIndex)}
+              instanceId={pricingInstanceId(matrixKey)}
             />
           </div>
         ) : null}

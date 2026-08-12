@@ -23,7 +23,7 @@ type VariantTableProps = {
 }
 
 type SetupTarget = {
-  lineIndex: number;
+  matrixKey: string;
   variantName: string;
   sku: string;
 };
@@ -99,7 +99,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {variantFields.map(({ field: variant, index }, lineIndex) => {
+          {variantFields.map(({ field: variant, index }) => {
             return (
               <TableRow
                 key={variant.matrixKey}
@@ -116,7 +116,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                     className="text-left text-sm font-medium text-primary underline-offset-4 hover:underline"
                     onClick={() =>
                       setSetupTarget({
-                        lineIndex,
+                        matrixKey: variant.matrixKey,
                         variantName: variant.name,
                         sku: variant.sku ?? "",
                       })
@@ -149,7 +149,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                 </TableCell>
                 <TableCell className="px-4 py-2">
                   <PricingInlineSlot
-                    instanceId={pricingInstanceId(index)}
+                    instanceId={pricingInstanceId(variant.matrixKey)}
                   />
                 </TableCell>
               </TableRow>
@@ -164,7 +164,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
           if (!open) setSetupTarget(null);
         }}
         variantName={setupTarget?.variantName ?? ""}
-        lineIndex={setupTarget?.lineIndex ?? 0}
+        matrixKey={setupTarget?.matrixKey ?? ""}
       />
     </div>
   );

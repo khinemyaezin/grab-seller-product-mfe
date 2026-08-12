@@ -1,120 +1,108 @@
-import { useEffect, useMemo, useRef } from "react";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { useCallback, useEffect, useRef } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { usePlatform } from "@khinemyaezin/seller-ui";
-import { PricingLineFormValue, ProductFormValue } from "../types";
-import { pricingInstanceId, STANDALONE_PRICING_INSTANCE_ID } from "../constants/pricing-instance-id";
-import { EventEnvelope, PricingPayload } from "@khinemyaezin/seller-contracts";
+import type {
+  EventEnvelope,
+  PricingPayload,
+  StateEventPayloads,
+} from "@khinemyaezin/seller-contracts";
+import type { ProductFormValue } from "@/features/products/types";
+import {
+  buildPricingSlotDescriptors,
+  projectPricingLines,
+  toHydratePayload,
+  type PricingSlotDescriptor,
+} from "@/features/products/adapters/pricing-slots";
 
-type PricingSlotDescriptor = {
-  instanceId: string;
-  lineIndex: number;
-  sku: string;
-};
-
-function findExistingLine(
-  lines: PricingLineFormValue[],
-  slot: PricingSlotDescriptor,
-  prevSku?: string,
-): PricingLineFormValue | undefined {
-  return (
-    lines.find((line) => line.sku === slot.sku)
-    ?? lines.find((line) => line.sku === prevSku)
-    ?? lines[slot.lineIndex]
-  );
-}
+const PRICING_TOPICS: (keyof StateEventPayloads)[] = [
+  "extension:pricing:hydrate:v1",
+  "extension:pricing:updated:v1",
+];
 
 export function usePricingSlotsSync() {
-  const { control, getValues } = useFormContext<ProductFormValue>();
+  const { control, getValues, setValue } = useFormContext<ProductFormValue>();
   const platform = usePlatform();
   const events = platform?.events;
-  const { update, append } = useFieldArray({ control, name: "pricingLines" });
+
+  const valuesRef = useRef(new Map<string, PricingPayload>());
+  const hydratedRef = useRef(new Map<string, Partial<PricingPayload>>());
 
   const variants = useWatch({ control, name: "product.variants", defaultValue: [] });
   const standaloneSku = useWatch({ control, name: "product.standaloneVariant.sku", defaultValue: "" });
+  const variationTypes = useWatch({ control, name: "variationTypes", defaultValue: [] });
 
-  const slots = useMemo<PricingSlotDescriptor[]>(() => {
-    const descriptors: PricingSlotDescriptor[] = [
-      {
-        instanceId: STANDALONE_PRICING_INSTANCE_ID,
-        lineIndex: 0,
-        sku: standaloneSku ?? ""
-      },
-    ];
-    (variants ?? []).forEach((variant, index) => {
-      descriptors.push({
-        instanceId: pricingInstanceId(index),
-        lineIndex: index,
-        sku: variant.sku ?? "",
-      });
+  const describe = useCallback(
+    () => buildPricingSlotDescriptors(getValues(), valuesRef.current),
+    [getValues],
+  );
+
+  const hydrate = useCallback((descriptor: PricingSlotDescriptor) => {
+    if (!events) return;
+
+    const payload = toHydratePayload(descriptor);
+    hydratedRef.current.set(descriptor.instanceId, payload);
+
+    events.setState("extension:pricing:hydrate:v1", {
+      producerId: "host",
+      instanceId: descriptor.instanceId,
+      payload,
     });
-    return descriptors;
-  }, [variants, standaloneSku]);
+  }, [events]);
 
-  const lastHydratedSkuRef = useRef(new Map<string, string>());
+  const project = useCallback((descriptors: PricingSlotDescriptor[]) => {
+    const lines = projectPricingLines(descriptors);
+    console.log(descriptors, lines)
+    setValue("pricingLines", lines, { shouldDirty: true });
+  }, []);
 
   useEffect(() => {
-    if (!events) return;
+    const descriptors = describe();
+    const live = new Set(descriptors.map((descriptor) => descriptor.instanceId));
 
-    for (const slot of slots) {
-      const lastHydratedSku = lastHydratedSkuRef.current.get(slot.instanceId);
-      if (lastHydratedSku === slot.sku) continue;
-      lastHydratedSkuRef.current.set(slot.instanceId, slot.sku);
-      if (!slot.sku) continue;
+    for (const instanceId of [...valuesRef.current.keys()]) {
+      if (live.has(instanceId)) continue;
 
-      const lines = getValues("pricingLines") ?? [];
-
-      const renamed = lastHydratedSku && lastHydratedSku !== slot.sku
-        ? lines.find((line) => line?.sku === lastHydratedSku)
-        : undefined;
-      if (renamed) {
-        const lineIndex = lines.indexOf(renamed);
-        if (lineIndex >= 0) {
-          update(lineIndex, { ...renamed, sku: slot.sku });
-        }
-      }
-
-      const existing = findExistingLine(lines, slot, lastHydratedSku);
-      const payload = existing ? { ...existing, sku: slot.sku } : { sku: slot.sku };
-
-      events.setState("extension:pricing:hydrate:v1", {
-        producerId: "host",
-        instanceId: slot.instanceId,
-        payload,
-      });
+      valuesRef.current.delete(instanceId);
+      hydratedRef.current.delete(instanceId);
+      events?.clear({ instanceId });
     }
-  }, [slots, events, getValues]);
+
+    for (const descriptor of descriptors) {
+      if(!descriptor.sku) continue;
+      hydrate(descriptor);
+    }
+
+    project(descriptors);
+  }, [variants, standaloneSku, variationTypes, events, describe, hydrate, project]);
 
   useEffect(() => {
     if (!events) return;
 
-    const unsub = events.subscribe("extension:pricing:updated:v1", (event: EventEnvelope<PricingPayload>) => {
-      if (!event.payload.sku) return;
+    const unsubscribe = events.subscribe("extension:pricing:updated:v1", (event: EventEnvelope<PricingPayload>) => {
+      valuesRef.current.set(event.instanceId, event.payload);
 
-      const current = getValues("pricingLines") ?? [];
-      const next = {
-        sku: event.payload.sku,
-        currencyCode: event.payload.currencyCode,
-        amount: event.payload.amount
-      };
-      const index = current.findIndex(line => line.sku == next.sku);
+      const descriptors = describe();
+      const target = descriptors.find(
+        (descriptor) => descriptor.instanceId === event.instanceId,
+      );
+      if (!target) return;
 
-      if (index >= 0) {
-        update(index, next);
-      } else if (next.amount === 0) {
-        return;
-      } else {
-        append(next);
-      }
-
-      events.setState("extension:pricing:hydrate:v1", {
-        producerId: "host",
-        instanceId: event.instanceId,
-        payload: next,
-      });
+      hydrate(target);
+      project(descriptors);
     },
     );
 
-    return () => unsub();
-  }, [events, getValues, append, update]);
+    return () => unsubscribe();
+  }, [events, describe, hydrate, project]);
 
+  useEffect(() => {
+    if (!events) return;
+
+    return () => {
+      for (const topic of PRICING_TOPICS) {
+        events.clear({ topic });
+      }
+      hydratedRef.current.clear();
+    };
+  }, [events]);
 }

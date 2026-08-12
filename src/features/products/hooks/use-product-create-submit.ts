@@ -5,8 +5,6 @@ import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
 import type { ButtonStatusState } from "@khinemyaezin/seller-ui/components/index";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
 import { buildCreateSellableProductRequest } from "@/features/products/adapters/create-sellable-product-request";
-import { pricingLineContribution } from "@/features/products/adapters/pricing-lines";
-import { syncValidatedLines } from "@/features/products/adapters/slot-lines";
 import type {
   ProductFormValue,
   ProductLifecycleEvent,
@@ -36,8 +34,6 @@ export function useProductCreateSubmit({
   const submit = useCallback(async () => {
     const results = await validate();
     if (results.some((result) => !result.valid)) return;
-
-    syncValidatedLines(form, pricingLineContribution, results);
 
     mutate(
       { link, request: buildCreateSellableProductRequest(form.getValues()) },

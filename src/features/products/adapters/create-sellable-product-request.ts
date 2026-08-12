@@ -5,11 +5,9 @@ import type {
 } from "@/features/products/types";
 import { generateSlug } from "@/features/products/utils";
 import {
-  isSubmittableInventoryLine,
   toCreateInventoryLine,
 } from "./inventory-lines";
 import {
-  isSubmittablePricingLine,
   toCreatePricingLine,
 } from "./pricing-lines";
 
@@ -56,10 +54,8 @@ export function buildCreateSellableProductRequest(
   return {
     ...buildCreateProductRequest(values),
     pricingLines: (values.pricingLines ?? [])
-      .filter(isSubmittablePricingLine)
       .map(toCreatePricingLine),
     inventoryLines: (values.inventoryLines ?? [])
-      .filter(isSubmittableInventoryLine)
       .map(toCreateInventoryLine),
   };
 }
