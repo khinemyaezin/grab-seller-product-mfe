@@ -9,6 +9,7 @@ import { ProductFormValue } from "../types";
 import type { ProductLifecycleEvent } from "../types";
 import { HateoasLink } from "@khinemyaezin/seller-api";
 import { useProductCreateSubmit } from "@/features/products/hooks/use-product-create-submit";
+import { useHasSlotEntries } from "@/features/products/context/extension-sync-store";
 import { PricingStandalone } from "./pricing-standalone";
 
 export type ProductNewFormProps = {
@@ -26,7 +27,6 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
     },
   },
   variationTypes: [],
-  pricingLines: [],
   inventoryLines: []
 };
 
@@ -36,12 +36,14 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
     mode: "onSubmit",
   });
 
-  const { handleSubmit, watch, formState: { isDirty } } = form;
+  const { handleSubmit, formState: { isDirty } } = form;
+  const hasSlotEntries = useHasSlotEntries();
   const { submit, isBusy, status } = useProductCreateSubmit({
     form,
     link,
     onLifecycleEvent,
   });
+  const hasUnsavedChanges = isDirty || hasSlotEntries;
 
   return (
     <FormProvider {...form}>
@@ -51,7 +53,6 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
             <CardContent>
               <ProductBasicFieldSet />
             </CardContent>
-            <Separator />
           </Card>
           <PricingStandalone />
           <Card>
@@ -60,7 +61,7 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
             </CardContent>
           </Card>
         </div>
-        {isDirty && (
+        {hasUnsavedChanges && (
           <Item className="w-full">
             <ItemContent>
               <ItemTitle>Unsaved changes</ItemTitle>

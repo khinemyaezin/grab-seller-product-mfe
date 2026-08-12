@@ -53,6 +53,5 @@ export type {
 export type {
   ProductFormValue,
   ProductFilterFormValue,
-  PricingLineFormValue,
   InventoryLineFormValue,
 } from "./catalog.form";

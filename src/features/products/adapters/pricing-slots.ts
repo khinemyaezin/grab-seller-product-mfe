@@ -5,7 +5,7 @@ import {
 } from "@khinemyaezin/seller-contracts";
 import type { SlotValidateResult } from "@khinemyaezin/seller-ui";
 import type {
-  PricingLineFormValue,
+  CreateSellableProductPricingLine,
   ProductFormValue,
 } from "@/features/products/types";
 import {
@@ -65,14 +65,16 @@ export function buildPricingSlotDescriptors(
     }));
 }
 
-export function toHydratePayload(descriptor: PricingSlotDescriptor): Partial<PricingPayload> {
-  return { ...descriptor.payload, sku: descriptor.sku };
+export function toHydrateIdentity(
+  descriptor: PricingSlotDescriptor,
+): Partial<PricingPayload> {
+  return { ...descriptor.payload };
 }
 
 export function projectPricingLines(
   descriptors: PricingSlotDescriptor[],
-): PricingLineFormValue[] {
-  const lines: PricingLineFormValue[] = [];
+): CreateSellableProductPricingLine[] {
+  const lines: CreateSellableProductPricingLine[] = [];
 
   for (const descriptor of descriptors) {
     if (!descriptor.payload) continue;

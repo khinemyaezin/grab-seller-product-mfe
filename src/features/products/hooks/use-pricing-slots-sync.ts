@@ -1,21 +1,27 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { usePlatform } from "@khinemyaezin/seller-ui";
 import type { SlotValidateResult } from "@khinemyaezin/seller-ui";
 import type {
+  DomainSubmitContract,
   EventEnvelope,
   PricingPayload,
   StateEventPayloads,
 } from "@khinemyaezin/seller-contracts";
-import type { ProductFormValue } from "@/features/products/types";
-import { useSlotResultSync } from "@/features/products/context/slot-result-sync";
+import type { CreateSellableProductRequest, ProductFormValue } from "@/features/products/types";
+import {
+  collectDomainPayloads,
+  useExtensionSyncStore,
+} from "@/features/products/context/extension-sync-store";
 import {
   buildPricingSlotDescriptors,
   isPricingValidateResult,
   projectPricingLines,
-  toHydratePayload,
+  toHydrateIdentity,
   type PricingSlotDescriptor,
 } from "@/features/products/adapters/pricing-slots";
+
+export const PRICING_DOMAIN = "pricing";
 
 const PRICING_TOPICS: (keyof StateEventPayloads)[] = [
   "extension:pricing:hydrate:v1",
@@ -23,99 +29,82 @@ const PRICING_TOPICS: (keyof StateEventPayloads)[] = [
 ];
 
 export function usePricingSlotsSync() {
-  const { control, getValues, setValue } = useFormContext<ProductFormValue>();
+  const { control, getValues } = useFormContext<ProductFormValue>();
   const platform = usePlatform();
   const events = platform?.events;
-  const { registerSync } = useSlotResultSync() ?? {};
-
-  const valuesRef = useRef(new Map<string, PricingPayload>());
-  const hydratedRef = useRef(new Map<string, Partial<PricingPayload>>());
+  const { registerDomain, getSnapshot, setPayload, prune, clearDomain } =
+    useExtensionSyncStore();
 
   const variants = useWatch({ control, name: "product.variants", defaultValue: [] });
   const standaloneSku = useWatch({ control, name: "product.standaloneVariant.sku", defaultValue: "" });
   const variationTypes = useWatch({ control, name: "variationTypes", defaultValue: [] });
 
-  const describe = useCallback(
-    () => buildPricingSlotDescriptors(getValues(), valuesRef.current),
-    [getValues],
-  );
+  const describe = useCallback((): PricingSlotDescriptor[] => {
+    const form = getValues();
+    const snapshot = getSnapshot();
+    const payload = collectDomainPayloads<PricingPayload>(snapshot, PRICING_DOMAIN);
+    return buildPricingSlotDescriptors(form, payload);
+  }, [getValues, getSnapshot]);
 
   const hydrate = useCallback((descriptor: PricingSlotDescriptor) => {
     if (!events) return;
 
-    const payload = toHydratePayload(descriptor);
-    hydratedRef.current.set(descriptor.instanceId, payload);
-
     events.setState("extension:pricing:hydrate:v1", {
       producerId: "host",
       instanceId: descriptor.instanceId,
-      payload,
+      payload: toHydrateIdentity(descriptor),
     });
   }, [events]);
 
-  const project = useCallback((descriptors: PricingSlotDescriptor[]) => {
-    const lines = projectPricingLines(descriptors);
-    setValue("pricingLines", lines, { shouldDirty: true });
-  }, []);
+  const contract = useMemo<DomainSubmitContract<Pick<CreateSellableProductRequest, "pricingLines">>>(() => ({
+    absorb: (results: SlotValidateResult[]) => {
+      for (const result of results) {
+        if (!isPricingValidateResult(result)) continue;
 
-  const syncValidated = useCallback((results: SlotValidateResult[]) => {
-    let synced = false;
-
-    for (const result of results) {
-      if (!isPricingValidateResult(result)) continue;
-      valuesRef.current.set(result.instanceId, result.value);
-      synced = true;
-    }
-
-    if (!synced) return;
-
-    project(describe());
-  }, [describe, project]);
+        setPayload({
+          domain: PRICING_DOMAIN,
+          instanceId: result.instanceId,
+          payload: result.value,
+        });
+      }
+    },
+    project: (): Pick<CreateSellableProductRequest, "pricingLines"> => ({
+      pricingLines: projectPricingLines(describe()),
+    }),
+  }), [describe, setPayload]);
 
   useEffect(() => {
-    registerSync?.("pricing", syncValidated);
-    return () => registerSync?.("pricing", undefined);
-  }, [registerSync, syncValidated]);
+    registerDomain(PRICING_DOMAIN, contract);
+    return () => registerDomain(PRICING_DOMAIN, undefined);
+  }, [registerDomain, contract]);
 
   useEffect(() => {
-    const descriptors = describe();
+    const descriptors: PricingSlotDescriptor[] = describe();
     const live = new Set(descriptors.map((descriptor) => descriptor.instanceId));
 
-    for (const instanceId of [...valuesRef.current.keys()]) {
-      if (live.has(instanceId)) continue;
-
-      valuesRef.current.delete(instanceId);
-      hydratedRef.current.delete(instanceId);
+    for (const instanceId of prune(PRICING_DOMAIN, live)) {
       events?.clear({ instanceId });
     }
 
     for (const descriptor of descriptors) {
-      if(!descriptor.sku) continue;
       hydrate(descriptor);
     }
-
-    project(descriptors);
-  }, [variants, standaloneSku, variationTypes, events, describe, hydrate, project]);
+  }, [variants, standaloneSku, variationTypes, events, describe, hydrate, prune]);
 
   useEffect(() => {
     if (!events) return;
 
     const unsubscribe = events.subscribe("extension:pricing:updated:v1", (event: EventEnvelope<PricingPayload>) => {
-      valuesRef.current.set(event.instanceId, event.payload);
-
-      const descriptors = describe();
-      const target = descriptors.find(
-        (descriptor) => descriptor.instanceId === event.instanceId,
-      );
-      if (!target) return;
-
-      hydrate(target);
-      project(descriptors);
+      setPayload({
+        domain: PRICING_DOMAIN,
+        instanceId: event.instanceId,
+        payload: event.payload,
+      });
     },
     );
 
     return () => unsubscribe();
-  }, [events, describe, hydrate, project]);
+  }, [events, setPayload]);
 
   useEffect(() => {
     if (!events) return;
@@ -124,7 +113,7 @@ export function usePricingSlotsSync() {
       for (const topic of PRICING_TOPICS) {
         events.clear({ topic });
       }
-      hydratedRef.current.clear();
+      clearDomain(PRICING_DOMAIN);
     };
-  }, [events]);
+  }, [events, clearDomain]);
 }

@@ -32,7 +32,6 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
         }
     },
     variationTypes: [],
-    pricingLines: [],
     inventoryLines: [],
    
 };
@@ -146,7 +145,6 @@ function transformProductToFormValue(apiData: GetFullProductResponse): ProductFo
                 { uuid: "", name: "" }
             ]
         })),
-        pricingLines: [],
         inventoryLines: []
     };
 }

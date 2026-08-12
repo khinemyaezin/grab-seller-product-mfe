@@ -1,6 +1,6 @@
 
 import ProductNewForm from "@/features/products/components/product-new-form";
-import { SlotResultSyncProvider } from "@/features/products/context/slot-result-sync";
+import { ExtensionSyncProvider } from "@/features/products/context/extension-sync-store";
 import { Header } from "@khinemyaezin/seller-ui/layout/header";
 import { Button } from "@khinemyaezin/seller-ui/components/index";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
@@ -46,12 +46,12 @@ export default function NewProductPage({ }: ProductCreatePageProps) {
       </Header>
       {createSellableProductLink && (
         <SlotProvider>
-          <SlotResultSyncProvider>
+          <ExtensionSyncProvider>
             <ProductNewForm
               link={createSellableProductLink}
               onLifecycleEvent={handleEvent}
             />
-          </SlotResultSyncProvider>
+          </ExtensionSyncProvider>
         </SlotProvider>
       )}
     </div>

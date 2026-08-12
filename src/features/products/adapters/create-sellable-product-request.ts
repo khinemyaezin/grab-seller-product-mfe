@@ -4,10 +4,7 @@ import type {
   ProductFormValue,
 } from "@/features/products/types";
 import { generateSlug } from "@/features/products/utils";
-import {
-  toCreateInventoryLine,
-} from "./inventory-lines";
-import { buildCreatePricingLine } from "./pricing-lines";
+import { ProductContributions } from "../types/catalog.request";
 
 export function buildCreateProductRequest(
   values: ProductFormValue,
@@ -49,12 +46,11 @@ export function buildCreateProductRequest(
 
 export function buildCreateSellableProductRequest(
   values: ProductFormValue,
+  contributions: ProductContributions = {},
 ): CreateSellableProductRequest {
   return {
     ...buildCreateProductRequest(values),
-    pricingLines: (values.pricingLines ?? [])
-      .map(buildCreatePricingLine),
-    inventoryLines: (values.inventoryLines ?? [])
-      .map(toCreateInventoryLine),
+    pricingLines: [],
+    ...contributions,
   };
 }

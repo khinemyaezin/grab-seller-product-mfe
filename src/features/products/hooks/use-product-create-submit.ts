@@ -5,7 +5,7 @@ import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
 import type { ButtonStatusState } from "@khinemyaezin/seller-ui/components/index";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
 import { buildCreateSellableProductRequest } from "@/features/products/adapters/create-sellable-product-request";
-import { useSlotResultSync } from "@/features/products/context/slot-result-sync";
+import { useExtensionSyncStore } from "@/features/products/context/extension-sync-store";
 import type {
   ProductFormValue,
   ProductLifecycleEvent,
@@ -29,7 +29,7 @@ export function useProductCreateSubmit({
   onLifecycleEvent,
 }: UseProductCreateSubmitOptions): UseProductCreateSubmitResult {
   const { validate, isValidating } = useValidateAllSlots();
-  const { syncValidated } = useSlotResultSync() ?? {};
+  const { runDomainSubmit } = useExtensionSyncStore();
   const mutation = useCreateSellableProductMutation();
   const { mutate, reset: resetMutation } = mutation;
 
@@ -37,10 +37,16 @@ export function useProductCreateSubmit({
     const results = await validate();
     if (results.some((result) => !result.valid)) return;
 
-    syncValidated?.(results);
+    const { domains, contributions } = runDomainSubmit(results);
+    if (import.meta.env.DEV && domains.length === 0) {
+      console.warn("[product-create] no extension domains registered at submit");
+    }
 
     mutate(
-      { link, request: buildCreateSellableProductRequest(form.getValues()) },
+      {
+        link,
+        request: buildCreateSellableProductRequest(form.getValues(), contributions),
+      },
       {
         onSuccess: () => {
           onLifecycleEvent?.({ type: "created" });
@@ -53,7 +59,7 @@ export function useProductCreateSubmit({
         },
       },
     );
-  }, [form, link, mutate, onLifecycleEvent, resetMutation, syncValidated, validate]);
+  }, [form, link, mutate, onLifecycleEvent, resetMutation, runDomainSubmit, validate]);
 
   const status: ButtonStatusState = mutation.isPending
     ? "pending"

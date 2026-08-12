@@ -43,8 +43,8 @@ export type CreateProductRequest = {
 };
 
 export type CreateSellableProductRequest = CreateProductRequest & {
-  pricingLines : CreateSellableProductPricingLine[],
-  inventoryLines: CreateSellableProductInventoryLine[]
+  pricingLines: CreateSellableProductPricingLine[],
+  //inventoryLines: CreateSellableProductInventoryLine[]
 }
 
 export type CreateSellableProductPricingLine = {
@@ -61,6 +61,10 @@ export type CreateSellableProductPricingLine = {
     priority?: number;
   }[];
 };
+
+export type ProductContributions = Partial<
+  Pick<CreateSellableProductRequest, "pricingLines">
+>;
 
 export type CreateSellableProductInventoryLine = {
   sku: string;

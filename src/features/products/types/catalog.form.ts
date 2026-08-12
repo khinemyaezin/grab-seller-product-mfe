@@ -1,11 +1,5 @@
 import type { Product, ProductStatus, VariationType } from "./catalog.model";
 
-export type PricingLineFormValue = {
-  sku: string;
-  currencyCode: string;
-  amount: number | ""
-};
-
 export type InventoryLineFormValue = {
   sku: string;
   locationId: string;
@@ -16,10 +10,13 @@ export type InventoryLineFormValue = {
   maxStock?: number | "";
 };
 
+/**
+ * Pricing lines are absent by design: they are projected from extension slot
+ * payloads at submit time, not edited as form state.
+ */
 export type ProductFormValue = {
   product: Product;
   variationTypes: VariationType[];
-  pricingLines: PricingLineFormValue[];
   inventoryLines: InventoryLineFormValue[];
 };
 
