@@ -7,9 +7,7 @@ import { generateSlug } from "@/features/products/utils";
 import {
   toCreateInventoryLine,
 } from "./inventory-lines";
-import {
-  toCreatePricingLine,
-} from "./pricing-lines";
+import { buildCreatePricingLine } from "./pricing-lines";
 
 export function buildCreateProductRequest(
   values: ProductFormValue,
@@ -48,13 +46,14 @@ export function buildCreateProductRequest(
   };
 }
 
+
 export function buildCreateSellableProductRequest(
   values: ProductFormValue,
 ): CreateSellableProductRequest {
   return {
     ...buildCreateProductRequest(values),
     pricingLines: (values.pricingLines ?? [])
-      .map(toCreatePricingLine),
+      .map(buildCreatePricingLine),
     inventoryLines: (values.inventoryLines ?? [])
       .map(toCreateInventoryLine),
   };

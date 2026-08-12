@@ -1,4 +1,5 @@
 import {
+  PricingPayloadSchema,
   PRODUCT_EXTENSION_SLOTS,
   type PricingPayload,
 } from "@khinemyaezin/seller-contracts";
@@ -11,11 +12,14 @@ import {
   pricingInstanceId,
   STANDALONE_PRICING_INSTANCE_ID,
 } from "@/features/products/constants/pricing-instance-id";
+import z from "zod";
 
 const PRICING_SLOT_IDS = new Set<string>([
   PRODUCT_EXTENSION_SLOTS.CREATE_PRICING,
   PRODUCT_EXTENSION_SLOTS.CREATE_PRICING_INLINE,
 ]);
+
+const schema = z.fromJSONSchema(PricingPayloadSchema) as z.ZodType<PricingPayload, PricingPayload>;
 
 export type PricingSlotDescriptor = {
   instanceId: string;
@@ -24,6 +28,14 @@ export type PricingSlotDescriptor = {
   payload?: PricingPayload;
 };
 
+export function isPricingValidateResult(
+  result: SlotValidateResult,
+): result is SlotValidateResult & { value: PricingPayload } {
+  return (
+    result.valid &&
+    PRICING_SLOT_IDS.has(result.slotId) &&
+    schema.safeParse(result.value).success);
+}
 
 export function buildPricingSlotDescriptors(
   values: ProductFormValue,

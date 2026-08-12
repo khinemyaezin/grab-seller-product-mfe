@@ -5,6 +5,7 @@ import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
 import type { ButtonStatusState } from "@khinemyaezin/seller-ui/components/index";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
 import { buildCreateSellableProductRequest } from "@/features/products/adapters/create-sellable-product-request";
+import { useSlotResultSync } from "@/features/products/context/slot-result-sync";
 import type {
   ProductFormValue,
   ProductLifecycleEvent,
@@ -28,12 +29,15 @@ export function useProductCreateSubmit({
   onLifecycleEvent,
 }: UseProductCreateSubmitOptions): UseProductCreateSubmitResult {
   const { validate, isValidating } = useValidateAllSlots();
+  const { syncValidated } = useSlotResultSync() ?? {};
   const mutation = useCreateSellableProductMutation();
   const { mutate, reset: resetMutation } = mutation;
 
   const submit = useCallback(async () => {
     const results = await validate();
     if (results.some((result) => !result.valid)) return;
+
+    syncValidated?.(results);
 
     mutate(
       { link, request: buildCreateSellableProductRequest(form.getValues()) },
@@ -49,7 +53,7 @@ export function useProductCreateSubmit({
         },
       },
     );
-  }, [form, link, mutate, onLifecycleEvent, resetMutation, validate]);
+  }, [form, link, mutate, onLifecycleEvent, resetMutation, syncValidated, validate]);
 
   const status: ButtonStatusState = mutation.isPending
     ? "pending"

@@ -4,7 +4,7 @@ import type {
 } from "@/features/products/types";
 
 
-export function toCreatePricingLine(
+export function buildCreatePricingLine(
   line: PricingLineFormValue,
 ): CreateSellableProductPricingLine {
   return {

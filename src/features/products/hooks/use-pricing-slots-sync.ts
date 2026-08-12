@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { usePlatform } from "@khinemyaezin/seller-ui";
+import type { SlotValidateResult } from "@khinemyaezin/seller-ui";
 import type {
   EventEnvelope,
   PricingPayload,
   StateEventPayloads,
 } from "@khinemyaezin/seller-contracts";
 import type { ProductFormValue } from "@/features/products/types";
+import { useSlotResultSync } from "@/features/products/context/slot-result-sync";
 import {
   buildPricingSlotDescriptors,
+  isPricingValidateResult,
   projectPricingLines,
   toHydratePayload,
   type PricingSlotDescriptor,
@@ -23,6 +26,7 @@ export function usePricingSlotsSync() {
   const { control, getValues, setValue } = useFormContext<ProductFormValue>();
   const platform = usePlatform();
   const events = platform?.events;
+  const { registerSync } = useSlotResultSync() ?? {};
 
   const valuesRef = useRef(new Map<string, PricingPayload>());
   const hydratedRef = useRef(new Map<string, Partial<PricingPayload>>());
@@ -51,9 +55,27 @@ export function usePricingSlotsSync() {
 
   const project = useCallback((descriptors: PricingSlotDescriptor[]) => {
     const lines = projectPricingLines(descriptors);
-    console.log(descriptors, lines)
     setValue("pricingLines", lines, { shouldDirty: true });
   }, []);
+
+  const syncValidated = useCallback((results: SlotValidateResult[]) => {
+    let synced = false;
+
+    for (const result of results) {
+      if (!isPricingValidateResult(result)) continue;
+      valuesRef.current.set(result.instanceId, result.value);
+      synced = true;
+    }
+
+    if (!synced) return;
+
+    project(describe());
+  }, [describe, project]);
+
+  useEffect(() => {
+    registerSync?.("pricing", syncValidated);
+    return () => registerSync?.("pricing", undefined);
+  }, [registerSync, syncValidated]);
 
   useEffect(() => {
     const descriptors = describe();

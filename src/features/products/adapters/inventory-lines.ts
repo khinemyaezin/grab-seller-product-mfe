@@ -7,10 +7,6 @@ function optionalNumber(value: number | "" | undefined): number | undefined {
   return value === "" || value == null ? undefined : Number(value);
 }
 
-export function isSubmittableInventoryLine(line: InventoryLineFormValue): boolean {
-  return !!line?.sku && !!line.locationId && line.initialQuantity !== "";
-}
-
 export function toCreateInventoryLine(
   line: InventoryLineFormValue,
 ): CreateSellableProductInventoryLine {
