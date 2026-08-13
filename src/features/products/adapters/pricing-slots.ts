@@ -22,7 +22,7 @@ const PRICING_SLOT_IDS = new Set<string>([
 const schema = z.fromJSONSchema(PricingPayloadSchema) as z.ZodType<PricingPayload, PricingPayload>;
 
 export type PricingSlotDescriptor = {
-  instanceId: string;
+  groupId: string;
   sku: string;
   matrixKey: string | null;
   payload?: PricingPayload;
@@ -39,17 +39,17 @@ export function isPricingValidateResult(
 
 export function buildPricingSlotDescriptors(
   values: ProductFormValue,
-  byInstance?: ReadonlyMap<string, PricingPayload>,
+  byGroup?: ReadonlyMap<string, PricingPayload>,
 ): PricingSlotDescriptor[] {
   const withPayload = (descriptor: PricingSlotDescriptor): PricingSlotDescriptor => {
-    const payload = byInstance?.get(descriptor.instanceId);
+    const payload = byGroup?.get(descriptor.groupId);
     return payload ? { ...descriptor, payload } : descriptor;
   };
 
   if ((values.variationTypes ?? []).length === 0) {
     return [
       withPayload({
-        instanceId: STANDALONE_PRICING_INSTANCE_ID,
+        groupId: STANDALONE_PRICING_INSTANCE_ID,
         sku: values.product.standaloneVariant?.sku ?? "",
         matrixKey: null,
       }),
@@ -59,7 +59,7 @@ export function buildPricingSlotDescriptors(
   return (values.product.variants ?? [])
     .filter((variant) => variant.variations.length > 0)
     .map((variant) => withPayload({
-      instanceId: pricingInstanceId(variant.matrixKey),
+      groupId: pricingInstanceId(variant.matrixKey),
       sku: variant.sku ?? "",
       matrixKey: variant.matrixKey,
     }));

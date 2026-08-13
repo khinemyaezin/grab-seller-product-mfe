@@ -149,7 +149,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                 </TableCell>
                 <TableCell className="px-4 py-2">
                   <PricingInlineSlot
-                    instanceId={pricingInstanceId(variant.matrixKey)}
+                    groupId={pricingInstanceId(variant.matrixKey)}
                   />
                 </TableCell>
               </TableRow>

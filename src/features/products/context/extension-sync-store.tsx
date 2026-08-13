@@ -80,13 +80,13 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
   const getSnapshot = useCallback(() => entriesRef.current, []);
 
   const getEntry = useCallback(
-    (instanceId: string) => entriesRef.current.get(instanceId),
+    (groupId: string) => entriesRef.current.get(groupId),
     [],
   );
 
   const setPayload = useCallback(
     (entry: SlotEntry) => {
-      const current = entriesRef.current.get(entry.instanceId);
+      const current = entriesRef.current.get(entry.groupId);
       if (
         current &&
         current.domain === entry.domain &&
@@ -96,7 +96,7 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
       }
 
       const next = new Map(entriesRef.current);
-      next.set(entry.instanceId, entry);
+      next.set(entry.groupId, entry);
       entriesRef.current = next;
       notify();
     },
@@ -104,18 +104,18 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
   );
 
   const prune = useCallback(
-    (domain: string, liveInstanceIds: ReadonlySet<string>) => {
+    (domain: string, liveGroupIds: ReadonlySet<string>) => {
       const removed: string[] = [];
-      for (const [instanceId, entry] of entriesRef.current) {
+      for (const [groupId, entry] of entriesRef.current) {
         if (entry.domain !== domain) continue;
-        if (liveInstanceIds.has(instanceId)) continue;
-        removed.push(instanceId);
+        if (liveGroupIds.has(groupId)) continue;
+        removed.push(groupId);
       }
 
       if (removed.length === 0) return removed;
 
       const next = new Map(entriesRef.current);
-      for (const instanceId of removed) next.delete(instanceId);
+      for (const groupId of removed) next.delete(groupId);
       entriesRef.current = next;
       notify();
 
@@ -129,9 +129,9 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
       const next = new Map(entriesRef.current);
       let changed = false;
 
-      for (const [instanceId, entry] of entriesRef.current) {
+      for (const [groupId, entry] of entriesRef.current) {
         if (entry.domain !== domain) continue;
-        next.delete(instanceId);
+        next.delete(groupId);
         changed = true;
       }
 
@@ -177,12 +177,12 @@ export function useExtensionSyncStore(): ExtensionSyncStore<ProductContributions
   return useContext(ExtensionSyncContext);
 }
 
-export function useSlotPayload<TPayload>(instanceId: string): TPayload | undefined {
+export function useSlotPayload<TPayload>(groupId: string): TPayload | undefined {
   const store = useExtensionSyncStore();
 
   const getSnapshot = useCallback(
-    () => store.getEntry(instanceId)?.payload as TPayload | undefined,
-    [store, instanceId],
+    () => store.getEntry(groupId)?.payload as TPayload | undefined,
+    [store, groupId],
   );
 
   return useSyncExternalStore(store.subscribe, getSnapshot);
@@ -228,12 +228,12 @@ export function collectDomainPayloads<TPayload>(
   entries: ReadonlyMap<string, SlotEntry>,
   domain: string,
 ): Map<string, TPayload> {
-  const byInstance = new Map<string, TPayload>();
+  const byGroup = new Map<string, TPayload>();
 
-  for (const [instanceId, entry] of entries) {
+  for (const [groupId, entry] of entries) {
     if (entry.domain !== domain) continue;
-    byInstance.set(instanceId, entry.payload as TPayload);
+    byGroup.set(groupId, entry.payload as TPayload);
   }
 
-  return byInstance;
+  return byGroup;
 }

@@ -29,7 +29,7 @@ export function VariantEditDialog({
         {open ? (
           <div className="flex flex-col gap-6">
             <PricingLineFullSlot
-              instanceId={pricingInstanceId(matrixKey)}
+              groupId={pricingInstanceId(matrixKey)}
             />
           </div>
         ) : null}

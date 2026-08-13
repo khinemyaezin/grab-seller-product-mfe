@@ -37,10 +37,7 @@ export function useProductCreateSubmit({
     const results = await validate();
     if (results.some((result) => !result.valid)) return;
 
-    const { domains, contributions } = runDomainSubmit(results);
-    if (import.meta.env.DEV && domains.length === 0) {
-      console.warn("[product-create] no extension domains registered at submit");
-    }
+    const { contributions } = runDomainSubmit(results);
 
     mutate(
       {

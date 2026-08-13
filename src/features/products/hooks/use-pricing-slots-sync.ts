@@ -51,7 +51,7 @@ export function usePricingSlotsSync() {
 
     events.setState("extension:pricing:hydrate:v1", {
       producerId: "host",
-      instanceId: descriptor.instanceId,
+      groupId: descriptor.groupId,
       payload: toHydrateIdentity(descriptor),
     });
   }, [events]);
@@ -63,7 +63,7 @@ export function usePricingSlotsSync() {
 
         setPayload({
           domain: PRICING_DOMAIN,
-          instanceId: result.instanceId,
+          groupId: result.groupId,
           payload: result.value,
         });
       }
@@ -80,10 +80,10 @@ export function usePricingSlotsSync() {
 
   useEffect(() => {
     const descriptors: PricingSlotDescriptor[] = describe();
-    const live = new Set(descriptors.map((descriptor) => descriptor.instanceId));
+    const live = new Set(descriptors.map((descriptor) => descriptor.groupId));
 
-    for (const instanceId of prune(PRICING_DOMAIN, live)) {
-      events?.clear({ instanceId });
+    for (const groupId of prune(PRICING_DOMAIN, live)) {
+      events?.clear({ groupId });
     }
 
     for (const descriptor of descriptors) {
@@ -97,7 +97,7 @@ export function usePricingSlotsSync() {
     const unsubscribe = events.subscribe("extension:pricing:updated:v1", (event: EventEnvelope<PricingPayload>) => {
       setPayload({
         domain: PRICING_DOMAIN,
-        instanceId: event.instanceId,
+        groupId: event.groupId,
         payload: event.payload,
       });
     },

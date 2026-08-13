@@ -7,7 +7,7 @@ export function PricingStandalone() {
         <Card>
             <CardContent>
                 <PricingLineFullSlot
-                    instanceId={STANDALONE_PRICING_INSTANCE_ID}
+                    groupId={STANDALONE_PRICING_INSTANCE_ID}
                 />
             </CardContent>
         </Card>

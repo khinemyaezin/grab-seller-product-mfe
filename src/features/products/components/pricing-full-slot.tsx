@@ -7,10 +7,10 @@ import {
 } from "@khinemyaezin/seller-ui/components/field";
 
 export type PricingLineSlotProps = {
-  instanceId: string
+  groupId: string
 };
 
-export function PricingLineFullSlot({ instanceId }: PricingLineSlotProps) {
+export function PricingLineFullSlot({ groupId }: PricingLineSlotProps) {
   return (
     <FieldSet>
       <FieldLegend>Pricing</FieldLegend>
@@ -22,7 +22,7 @@ export function PricingLineFullSlot({ instanceId }: PricingLineSlotProps) {
         <ExtensionSlot
           name={PRODUCT_EXTENSION_SLOTS.CREATE_PRICING}
           props={{
-            instanceId,
+            groupId,
           }}
         />
       </div>

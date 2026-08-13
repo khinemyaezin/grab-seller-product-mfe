@@ -9,7 +9,7 @@ import { ProductContributions } from "../types/catalog.request";
 export function buildCreateProductRequest(
   values: ProductFormValue,
 ): CreateProductRequest {
-  const hasVariations = values.product.variants.length > 0;
+  const hasVariations = values.variationTypes.length > 0;
 
   const mappedVariants = hasVariations
     ? values.product.variants.map((variant) => ({
