@@ -1,16 +1,15 @@
 import { FormProvider, useForm } from "react-hook-form"
-import ProductBasicFieldSet from "./product-basic-fieldset";
-import ProductVariationFieldSet from "./product-variation-fieldset";
-import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card";
-import { Separator } from "@khinemyaezin/seller-ui/components/separator";
-import { Button, ButtonStatus, Item, ItemActions, ItemContent, ItemTitle } from "@khinemyaezin/seller-ui/components/index";
-import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
 import { ProductFormValue } from "../types";
 import type { ProductLifecycleEvent } from "../types";
 import { HateoasLink } from "@khinemyaezin/seller-api";
 import { useProductCreateSubmit } from "@/features/products/hooks/use-product-create-submit";
-import { useHasSlotEntries } from "@/features/products/context/extension-sync-store";
+import { useIsExtensionDirty } from "@/features/products/context/extension-sync-store";
+import { useContextBar } from "@khinemyaezin/seller-ui";
+import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card";
 import { PricingStandalone } from "./pricing-standalone";
+import { InventoryStandalone } from "./inventory-standalone";
+import ProductBasicFieldSet from "./product-basic-fieldset";
+import ProductVariationFieldSet from "./product-variation-fieldset";
 
 export type ProductNewFormProps = {
   link: HateoasLink,
@@ -27,7 +26,6 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
     },
   },
   variationTypes: [],
-  inventoryLines: []
 };
 
 export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFormProps) {
@@ -37,56 +35,42 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
   });
 
   const { handleSubmit, formState: { isDirty } } = form;
-  const hasSlotEntries = useHasSlotEntries();
-  const { submit, isBusy, status } = useProductCreateSubmit({
+  const [isExtensionDirty, resetExtensionDirty] = useIsExtensionDirty();
+  const { submit } = useProductCreateSubmit({
     form,
     link,
     onLifecycleEvent,
   });
-  const hasUnsavedChanges = isDirty || hasSlotEntries;
 
-  return (
-    <FormProvider {...form}>
-      <form onSubmit={handleSubmit(submit)}>
-        <div className="flex flex-col gap-6">
-          <Card className="flex-1 w-full">
-            <CardContent>
-              <ProductBasicFieldSet />
-            </CardContent>
-          </Card>
-          <PricingStandalone />
-          <Card>
-            <CardContent>
-              <ProductVariationFieldSet />
-            </CardContent>
-          </Card>
-        </div>
-        {hasUnsavedChanges && (
-          <Item className="w-full">
-            <ItemContent>
-              <ItemTitle>Unsaved changes</ItemTitle>
-            </ItemContent>
-            <ItemActions>
-              <ButtonGroup>
-                <ButtonGroup>
-                  <Button
-                    type="submit"
-                    disabled={isBusy}
-                  >
-                    <ButtonStatus
-                      status={status}
-                      pendingLabel="Saving…"
-                      successLabel="Saved"
-                    >
-                      Save
-                    </ButtonStatus>
-                  </Button>
-                </ButtonGroup>
-              </ButtonGroup>
-            </ItemActions>
-          </Item>
-        )}
-      </form>
-    </FormProvider>
-  );
+  useContextBar({
+    dirty: isDirty || isExtensionDirty,
+    onSave: handleSubmit(submit),
+    onDiscard: () => {
+      form.reset();
+      resetExtensionDirty();
+    },
+    groupId: "product-new",
+    label: "New Product",
+  });
+
+return (
+  <FormProvider {...form}>
+    <form onSubmit={handleSubmit(submit)}>
+      <div className="flex flex-col gap-6">
+        <Card className="flex-1 w-full">
+          <CardContent>
+            <ProductBasicFieldSet />
+          </CardContent>
+        </Card>
+        <PricingStandalone />
+        <InventoryStandalone />
+        <Card>
+          <CardContent>
+            <ProductVariationFieldSet />
+          </CardContent>
+        </Card>
+      </div>
+    </form>
+  </FormProvider>
+);
 }

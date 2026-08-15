@@ -32,8 +32,6 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
         }
     },
     variationTypes: [],
-    inventoryLines: [],
-   
 };
 
 function determineUpdateIntent({
@@ -145,7 +143,6 @@ function transformProductToFormValue(apiData: GetFullProductResponse): ProductFo
                 { uuid: "", name: "" }
             ]
         })),
-        inventoryLines: []
     };
 }
 

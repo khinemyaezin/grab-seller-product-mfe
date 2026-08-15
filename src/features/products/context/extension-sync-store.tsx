@@ -9,19 +9,19 @@ import {
 import type { ReactNode } from "react";
 import type { SlotValidateResult } from "@khinemyaezin/seller-ui";
 import { ProductContributions } from "../types/catalog.request";
-import { DomainSubmitContract, DomainSubmitResult, ExtensionSyncStore, SlotEntry } from "@khinemyaezin/seller-contracts";
+import { DomainSubmitContract, DomainSubmitResult, ExtensionFieldErrors, ExtensionSyncStore, SlotEntry } from "@khinemyaezin/seller-contracts";
 
 const EMPTY_ENTRIES: ReadonlyMap<string, SlotEntry> = new Map();
 
 const inertStore: ExtensionSyncStore<ProductContributions> = {
-  registerDomain: () => {},
-  runDomainSubmit: () => ({ domains: [], contributions: {} }),
-  subscribe: () => () => {},
+  registerDomain: () => { },
+  runDomainSubmit: () => ({ domains: [], contributions: {}, errors: {} }),
+  subscribe: () => () => { },
   getSnapshot: () => EMPTY_ENTRIES,
   getEntry: () => undefined,
-  setPayload: () => {},
+  setPayload: () => { },
   prune: () => [],
-  clearDomain: () => {},
+  clearDomain: () => { },
 };
 
 const ExtensionSyncContext = createContext<ExtensionSyncStore<ProductContributions>>(inertStore);
@@ -51,7 +51,7 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
       const registered = [...contractsRef.current.entries()];
 
       for (const [, contract] of registered) {
-        contract.absorb(results);
+        contract.sync(results);
       }
 
       const contributions: ProductContributions = {};
@@ -62,9 +62,18 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      const errors = registered.reduce<ExtensionFieldErrors>((acc, [, contract]) => {
+        const contractErrors = contract.getErrors(results) ?? [];
+        for (const item of contractErrors) {
+          Object.assign(acc, item.errors);
+        }
+        return acc;
+      }, {});
+
       return {
         domains: registered.map(([domain]) => domain),
         contributions,
+        errors
       };
     },
     [],
@@ -190,9 +199,9 @@ export function useSlotPayload<TPayload>(groupId: string): TPayload | undefined 
 
 export function useHasSlotEntries(): boolean {
   const store = useExtensionSyncStore();
-
-  const getSnapshot = useCallback(() => store.getSnapshot().size > 0, [store]);
-
+  const getSnapshot = useCallback(
+    () => store.getSnapshot().size > 0,
+    [store]);
   return useSyncExternalStore(store.subscribe, getSnapshot);
 }
 
@@ -236,4 +245,21 @@ export function collectDomainPayloads<TPayload>(
   }
 
   return byGroup;
+}
+
+export function useIsExtensionDirty(): [boolean, () => void] {
+  const store = useExtensionSyncStore();
+  const initialSnapshotRef = useRef(store.getSnapshot());
+
+  const getSnapshot = useCallback(() => {
+    return store.getSnapshot() !== initialSnapshotRef.current;
+  }, [store]);
+
+  const isDirty = useSyncExternalStore(store.subscribe, getSnapshot);
+
+  const resetDirty = useCallback(() => {
+    initialSnapshotRef.current = store.getSnapshot();
+  }, [store]);
+
+  return [isDirty, resetDirty];
 }

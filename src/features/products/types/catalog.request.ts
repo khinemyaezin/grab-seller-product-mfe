@@ -44,7 +44,7 @@ export type CreateProductRequest = {
 
 export type CreateSellableProductRequest = CreateProductRequest & {
   pricingLines: CreateSellableProductPricingLine[],
-  //inventoryLines: CreateSellableProductInventoryLine[]
+  inventoryLines: CreateSellableProductInventoryLine[]
 }
 
 export type CreateSellableProductPricingLine = {
@@ -63,7 +63,7 @@ export type CreateSellableProductPricingLine = {
 };
 
 export type ProductContributions = Partial<
-  Pick<CreateSellableProductRequest, "pricingLines">
+  Pick<CreateSellableProductRequest, "pricingLines" | "inventoryLines">
 >;
 
 export type CreateSellableProductInventoryLine = {

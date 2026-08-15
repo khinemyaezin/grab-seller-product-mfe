@@ -6,6 +6,7 @@ import {
 } from "@khinemyaezin/seller-ui/components/dialog";
 import { PricingLineFullSlot } from "./pricing-full-slot";
 import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
+import { Separator } from "@khinemyaezin/seller-ui/components/separator";
 
 export type VariantEditDialogProps = {
   open: boolean;
@@ -22,7 +23,7 @@ export function VariantEditDialog({
 }: VariantEditDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent >
         <DialogHeader>
           <DialogTitle>{`Edit ${variantName}`}</DialogTitle>
         </DialogHeader>
@@ -33,6 +34,10 @@ export function VariantEditDialog({
             />
           </div>
         ) : null}
+        <Separator/>
+        <div >
+          <span className="text-muted-foreground">Save the product to edit more variant details.</span>
+        </div>
       </DialogContent>
     </Dialog>
   );

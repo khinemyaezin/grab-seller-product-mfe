@@ -14,23 +14,17 @@ import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-
 import { Checkbox } from "@khinemyaezin/seller-ui/components/checkbox";
 import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
 import type { ProductFormValue } from "@/features/products/types";
-import { VariantEditDialog } from "./variant-edit-dialog";
 import { PricingInlineSlot } from "./pricing-inline-slot";
+import { InventoryInlineSlot } from "./inventory-inline-slot";
 import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
+import { inventoryGroupId } from "@/features/products/constants/inventory-group-id";
 
 type VariantTableProps = {
   onAllVariantsDeleted?: () => void;
 }
 
-type SetupTarget = {
-  matrixKey: string;
-  variantName: string;
-  sku: string;
-};
-
 export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const [setupTarget, setSetupTarget] = useState<SetupTarget | null>(null);
   const { control } = useFormContext<ProductFormValue>();
   const { fields, remove } = useFieldArray({
     control,
@@ -96,6 +90,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
             <TableHead>Price</TableHead>
+            <TableHead>Stock</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -111,19 +106,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                   />
                 </TableCell>
                 <TableCell>
-                  <button
-                    type="button"
-                    className="text-left text-sm font-medium text-primary underline-offset-4 hover:underline"
-                    onClick={() =>
-                      setSetupTarget({
-                        matrixKey: variant.matrixKey,
-                        variantName: variant.name,
-                        sku: variant.sku ?? "",
-                      })
-                    }
-                  >
-                    {variant.name}
-                  </button>
+                  {variant.name}
                 </TableCell>
                 <TableCell className="px-4 py-2">
                   <Controller
@@ -152,20 +135,16 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                     groupId={pricingInstanceId(variant.matrixKey)}
                   />
                 </TableCell>
+                <TableCell className="px-4 py-2">
+                  <InventoryInlineSlot
+                    groupId={inventoryGroupId(variant.matrixKey)}
+                  />
+                </TableCell>
               </TableRow>
             )
           })}
         </TableBody>
       </Table>
-
-      <VariantEditDialog
-        open={setupTarget != null}
-        onOpenChange={(open) => {
-          if (!open) setSetupTarget(null);
-        }}
-        variantName={setupTarget?.variantName ?? ""}
-        matrixKey={setupTarget?.matrixKey ?? ""}
-      />
     </div>
   );
 }

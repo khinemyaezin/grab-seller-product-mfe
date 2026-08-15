@@ -51,6 +51,7 @@ export function buildCreateSellableProductRequest(
   return {
     ...buildCreateProductRequest(values),
     pricingLines: [],
+    inventoryLines: [],
     ...contributions,
   };
 }

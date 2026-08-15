@@ -35,10 +35,9 @@ export function useProductCreateSubmit({
 
   const submit = useCallback(async () => {
     const results = await validate();
-    if (results.some((result) => !result.valid)) return;
-
-    const { contributions } = runDomainSubmit(results);
-
+    if(results.some(result=> !result.valid)) return;
+    const { contributions, errors } = runDomainSubmit(results);
+    console.log(contributions, errors)
     mutate(
       {
         link,

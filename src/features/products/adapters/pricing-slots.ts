@@ -1,4 +1,5 @@
 import {
+  PricingCreateContext,
   PricingPayloadSchema,
   PRODUCT_EXTENSION_SLOTS,
   type PricingPayload,
@@ -23,8 +24,7 @@ const schema = z.fromJSONSchema(PricingPayloadSchema) as z.ZodType<PricingPayloa
 
 export type PricingSlotDescriptor = {
   groupId: string;
-  sku: string;
-  matrixKey: string | null;
+  context: PricingCreateContext;
   payload?: PricingPayload;
 };
 
@@ -41,34 +41,31 @@ export function buildPricingSlotDescriptors(
   values: ProductFormValue,
   byGroup?: ReadonlyMap<string, PricingPayload>,
 ): PricingSlotDescriptor[] {
-  const withPayload = (descriptor: PricingSlotDescriptor): PricingSlotDescriptor => {
-    const payload = byGroup?.get(descriptor.groupId);
-    return payload ? { ...descriptor, payload } : descriptor;
-  };
 
   if ((values.variationTypes ?? []).length === 0) {
+    const snapshot = byGroup?.get(STANDALONE_PRICING_INSTANCE_ID);
+    const context: PricingCreateContext = { sku: values.product.standaloneVariant.sku ?? "" };
     return [
-      withPayload({
+      {
         groupId: STANDALONE_PRICING_INSTANCE_ID,
-        sku: values.product.standaloneVariant?.sku ?? "",
-        matrixKey: null,
-      }),
+        context,
+        ...(snapshot ? { payload: snapshot } : {}),
+      },
     ];
   }
 
   return (values.product.variants ?? [])
     .filter((variant) => variant.variations.length > 0)
-    .map((variant) => withPayload({
-      groupId: pricingInstanceId(variant.matrixKey),
-      sku: variant.sku ?? "",
-      matrixKey: variant.matrixKey,
-    }));
-}
-
-export function toHydrateIdentity(
-  descriptor: PricingSlotDescriptor,
-): Partial<PricingPayload> {
-  return { ...descriptor.payload };
+    .map((variant) => {
+      const groupId = pricingInstanceId(variant.matrixKey);
+      const snapshot = byGroup?.get(groupId);
+      const context: PricingCreateContext = { sku: variant.sku ?? "" };
+      return {
+        groupId,
+        context,
+        ...(snapshot ? { payload: snapshot } : {}),
+      };
+    });
 }
 
 export function projectPricingLines(
@@ -80,7 +77,7 @@ export function projectPricingLines(
     if (!descriptor.payload) continue;
 
     lines.push({
-      sku: descriptor.sku,
+      sku: descriptor.payload.sku,
       currencyCode: descriptor.payload.currencyCode,
       amount: descriptor.payload.amount,
     });
