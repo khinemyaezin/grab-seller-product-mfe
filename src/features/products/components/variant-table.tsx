@@ -10,10 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@khinemyaezin/seller-ui/components/table";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { Checkbox } from "@khinemyaezin/seller-ui/components/checkbox";
 import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
 import type { ProductFormValue } from "@/features/products/types";
+import { PricingInlineSlot } from "./pricing-inline-slot";
+import { InventoryInlineSlot } from "./inventory-inline-slot";
+import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
+import { inventoryGroupId } from "@/features/products/constants/inventory-group-id";
 
 type VariantTableProps = {
   onAllVariantsDeleted?: () => void;
@@ -77,7 +81,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
         <TableCaption>List of generated product variants.</TableCaption>
         <TableHeader>
           <TableRow >
-            <TableHead className="w-[100px]">
+            <TableHead className="w-[50px]">
               <Checkbox
                 checked={selectedIndices.length === variantFields.length && variantFields.length > 0}
                 onCheckedChange={handleSelectAll}
@@ -85,6 +89,8 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
             </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Stock</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -100,7 +106,7 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                   />
                 </TableCell>
                 <TableCell>
-                  <span>{variant.name}</span>
+                  {variant.name}
                 </TableCell>
                 <TableCell className="px-4 py-2">
                   <Controller
@@ -122,6 +128,16 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                         )}
                       </Field>
                     )}
+                  />
+                </TableCell>
+                <TableCell className="px-4 py-2">
+                  <PricingInlineSlot
+                    groupId={pricingInstanceId(variant.matrixKey)}
+                  />
+                </TableCell>
+                <TableCell className="px-4 py-2">
+                  <InventoryInlineSlot
+                    groupId={inventoryGroupId(variant.matrixKey)}
                   />
                 </TableCell>
               </TableRow>

@@ -1,136 +1,76 @@
 import { FormProvider, useForm } from "react-hook-form"
+import { ProductFormValue } from "../types";
+import type { ProductLifecycleEvent } from "../types";
+import { HateoasLink } from "@khinemyaezin/seller-api";
+import { useProductCreateSubmit } from "@/features/products/hooks/use-product-create-submit";
+import { useIsExtensionDirty } from "@/features/products/context/extension-sync-store";
+import { useContextBar } from "@khinemyaezin/seller-ui";
+import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card";
+import { PricingStandalone } from "./pricing-standalone";
+import { InventoryStandalone } from "./inventory-standalone";
 import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductVariationFieldSet from "./product-variation-fieldset";
-import { generateSlug } from "@/features/products/utils";
-import { useProductMutation } from "@/features/products/hooks/use-products";
-import { useCatalogLink } from "@/features/products/hooks/use-root";
-import { Card, CardContent, CardFooter } from "@khinemyaezin/seller-ui/components/card";
-import { Separator } from "@khinemyaezin/seller-ui/components/separator";
-import { Button, ButtonStatus } from "@khinemyaezin/seller-ui/components/index";
-import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
-import { ProductFormValue, CreateProductRequest } from "../types";
-
-import type { ProductLifecycleEvent } from "../types";
 
 export type ProductNewFormProps = {
-    onLifecycleEvent?: (event: ProductLifecycleEvent) => void;
+  link: HateoasLink,
+  onLifecycleEvent?: (event: ProductLifecycleEvent) => void
 };
 
 const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
-    product: {
-        name: "",
-        category: null,
-        variants: [],
-        standaloneVariant: {
-            sku: ""
-        },
+  product: {
+    name: "",
+    category: null,
+    variants: [],
+    standaloneVariant: {
+      sku: "",
     },
-    variationTypes: [],
+  },
+  variationTypes: [],
 };
 
-function buildCreatePayload(values: ProductFormValue): CreateProductRequest {
-    const mappedVariants = values.product.variants.length > 0
-        ? values.product.variants.map((variant) => ({
-            sku: variant.sku,
-            variations: variant.variations.map((v) => ({
-                typeId: v.typeId,
-                optionId: v.optionId,
-            })),
-        }))
-        : [{
-            sku: values.product.standaloneVariant.sku,
-            variations: [],
-        }];
+export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFormProps) {
+  const form = useForm<ProductFormValue>({
+    defaultValues: DEFAULT_PRODUCT_FORM_VALUE,
+    mode: "onSubmit",
+  });
 
-    return {
-        product: {
-            name: values.product.name,
-            categoryId: values.product.category?.id || "",
-            condition: "NEW",
-            slug: generateSlug(values.product.name),
-            variants: mappedVariants,
-        },
-        variantTypes: values.variationTypes.map((type) => ({
-            typeId: type.uuid,
-            options: type.options
-                .filter((option) => option.uuid !== "")
-                .map((option) => ({
-                    optionId: option.uuid,
-                })),
-        })),
-    };
-}
+  const { handleSubmit, formState: { isDirty } } = form;
+  const [isExtensionDirty, resetExtensionDirty] = useIsExtensionDirty();
+  const { submit } = useProductCreateSubmit({
+    form,
+    link,
+    onLifecycleEvent,
+  });
 
-export default function ProductNewForm({ onLifecycleEvent }: ProductNewFormProps) {
-    const createProductLink = useCatalogLink("createProduct");
-    const form = useForm<ProductFormValue>({
-        defaultValues: DEFAULT_PRODUCT_FORM_VALUE,
-        mode: "onSubmit"
-    });
+  useContextBar({
+    dirty: isDirty || isExtensionDirty,
+    onSave: handleSubmit(submit),
+    onDiscard: () => {
+      form.reset();
+      resetExtensionDirty();
+    },
+    groupId: "product-new",
+    label: "New Product",
+  });
 
-    const { handleSubmit, reset, formState: { isDirty } } = form;
-
-    const createProductApi = useProductMutation();
-
-
-
-    const handleFormSubmit = (values: ProductFormValue) => {
-        if (!createProductLink) return;
-        const payload = buildCreatePayload(values);
-        createProductApi.mutate(
-            { link: createProductLink, request: payload },
-            {
-                onSuccess: () => {
-                    onLifecycleEvent?.({ type: "created" });
-                    createProductApi.reset();
-                    reset();
-                },
-                onError: (error) => {
-                    console.error("Failed to create product:", error);
-                    onLifecycleEvent?.({ type: "createFailed" });
-                    createProductApi.reset();
-                }
-            }
-        );
-    }
-
-    return (
-        <FormProvider {...form}>
-            <form onSubmit={handleSubmit(handleFormSubmit)} className="grid gap-6">
-                <Card>
-                    <CardContent>
-                        <ProductBasicFieldSet />
-                        <Separator className="my-6" />
-                        <ProductVariationFieldSet />
-                    </CardContent>
-                    {isDirty && (
-                        <CardFooter className="flex justify-end">
-                            <ButtonGroup>
-                                <ButtonGroup>
-
-                                    <Button type="submit" disabled={createProductApi.isPending}>
-                                        <ButtonStatus status={
-                                            createProductApi.isPending
-                                                ? "pending"
-                                                : createProductApi.isSuccess
-                                                    ? "success"
-                                                    : createProductApi.isError
-                                                        ? "failed"
-                                                        : "idle"
-                                        }
-                                            pendingLabel="Saving…"
-                                            successLabel="Saved">
-                                            Save
-                                        </ButtonStatus>
-                                    </Button>
-
-                                </ButtonGroup>
-                            </ButtonGroup>
-                        </CardFooter>
-                    )}
-                </Card>
-            </form>
-
-        </FormProvider>
-    )
+return (
+  <FormProvider {...form}>
+    <form onSubmit={handleSubmit(submit)}>
+      <div className="flex flex-col gap-6">
+        <Card className="flex-1 w-full">
+          <CardContent>
+            <ProductBasicFieldSet />
+          </CardContent>
+        </Card>
+        <PricingStandalone />
+        <InventoryStandalone />
+        <Card>
+          <CardContent>
+            <ProductVariationFieldSet />
+          </CardContent>
+        </Card>
+      </div>
+    </form>
+  </FormProvider>
+);
 }

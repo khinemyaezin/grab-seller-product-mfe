@@ -1,6 +1,8 @@
 import type {
   CategoryLeavesResult,
   CreateProductRequest,
+  CreateSellableProductRequest,
+  CreateSellableProductResponse,
   GetFullProductResponse,
   GetVariationOptionResult,
   GetVariationTypeResult,
@@ -13,7 +15,7 @@ import type {
   ProductSearchRequest,
   ProductSearchResponse,
 } from "@/features/products/types";
-import { api, resolveUrlTemplate } from "@khinemyaezin/seller-api";
+import { api } from "@khinemyaezin/seller-api";
 import type { HateoasLink } from "@khinemyaezin/seller-api";
 
 export const catalogService = {
@@ -52,4 +54,11 @@ export const catalogService = {
 
   publishProduct: (link: HateoasLink, headers?: Record<string, string>) =>
     api.followLink<ProductModerationResponse>(link, "POST", undefined, undefined, headers),
+
+  createSellableProduct: (
+    link: HateoasLink,
+    request: CreateSellableProductRequest,
+    headers?: Record<string, string>,
+  ) =>
+    api.followLink<CreateSellableProductResponse>(link, "POST", request, undefined, headers),
 };

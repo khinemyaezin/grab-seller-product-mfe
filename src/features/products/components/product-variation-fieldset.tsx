@@ -7,6 +7,8 @@ import { useMatrixSync } from "@/features/products/hooks/use-matrix-sync";
 import type { ProductFormValue } from "@/features/products/types";
 import ProductStandaloneVariantField from "./product-standalone-field";
 import { VariationTypeField } from "./product-variation-type-field";
+import { usePricingSlotsSync } from "../hooks/use-pricing-slots-sync";
+import { useInventorySlotsSync } from "../hooks/use-inventory-slots-sync";
 
 export default function ProductVariationFieldSet() {
     const { control, getValues } = useFormContext<ProductFormValue>();
@@ -16,6 +18,8 @@ export default function ProductVariationFieldSet() {
     });
 
     useMatrixSync();
+    usePricingSlotsSync();
+    useInventorySlotsSync();
 
     const handleAddType = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -36,6 +40,7 @@ export default function ProductVariationFieldSet() {
                                 required: "SKU is required"
                             }} />
                     </FieldGroup>
+
                 )}
                 {fields.length !== 0 && (
                     <FieldGroup className="gap-0">

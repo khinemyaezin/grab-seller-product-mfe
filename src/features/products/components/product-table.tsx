@@ -79,19 +79,24 @@ export default function ProductTable({ link, filter, onPageChange, onLifecycleEv
     [restoreProductMutation, onLifecycleEvent],
   );
 
-  const showPagination = (data?.page.totalPages ?? 0) > 1
+  const showPagination = (data?.page.totalPages ?? 0) > 1;
+
+  if (products.length == 0) {
+    return <NoProduct />
+  }
+
   return (
-    <Table>
+    <Table className="[&_tr>*:first-child]:pl-(--card-spacing) [&_tr>*:last-child]:pr-(--card-spacing)">
       <TableHeader>
-        <TableRow>
+        <TableRow className="bg-muted">
           <TableHead className="w-[48px]"></TableHead>
           <TableHead>Product</TableHead>
           <TableHead>Status</TableHead>
           <TableHead></TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody>
-        {products.length > 0 ? (
+      <TableBody >
+        {
           products.map((product) => (
             <TableRow key={product.productId}>
               <TableCell>
@@ -104,7 +109,7 @@ export default function ProductTable({ link, filter, onPageChange, onLifecycleEv
                 <span className="font-normal text-muted-foreground">{product.categoryName}</span>
               </TableCell>
               <TableCell>
-                <Badge variant={getProductStatusBadgeClass(product.status)}>
+                <Badge variant="default">
                   {formatProductStatus(product.status)}
                 </Badge>
               </TableCell>
@@ -145,18 +150,12 @@ export default function ProductTable({ link, filter, onPageChange, onLifecycleEv
               </TableCell>
             </TableRow>
           ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={4} className="text-muted-foreground pointer-events-none text-center">
-              No record found.
-            </TableCell>
-          </TableRow>
-        )}
+        }
       </TableBody>
       {showPagination && (
         <TableFooter className="bg-transparent">
           <TableRow>
-            <TableCell colSpan={4} >
+            <TableCell colSpan={4} className="px-(--card-spacing)">
               <div className="flex w-full items-center justify-between py-3">
                 <span className="text-muted-foreground grow">
                   Showing {data?.page ? data.page.number * data.page.size + 1 : 0} - {data?.page ? data.page.number * data.page.size + products.length : 0} of {data?.page?.totalElements} products
@@ -177,3 +176,15 @@ export default function ProductTable({ link, filter, onPageChange, onLifecycleEv
     </Table>
   );
 }
+
+function NoProduct() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1 text-center">
+      <p className="text-base font-semibold text-foreground">No products found</p>
+      <p className="text-sm text-muted-foreground">
+        Try changing the filters or search term
+      </p>
+    </div>
+  );
+}
+

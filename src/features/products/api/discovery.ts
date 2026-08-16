@@ -14,5 +14,6 @@ export async function fetchCatalogRoot(link: HateoasLink): Promise<CatalogRoot> 
     searchVariantTypes: resolveLink(response._links, "search-variant-types"),
     searchVariantOptions: resolveLink(response._links, "search-variant-options"),
     generateVariationMatrix: resolveLink(response._links, "generate-variation-matrix"),
+    createSellableProduct: resolveLink(response._links, "create-sellable-product")
   };
 }

@@ -72,7 +72,7 @@ export function ProductStatus({ status, link, onLifecycleEvent }: ProductStatusS
             <CardHeader>
                 <div className="flex items-start justify-between gap-3">
                     <CardTitle>Status</CardTitle>
-                    <Badge variant={getProductStatusBadgeClass(productStatus)}>
+                    <Badge >
                         {formatProductStatus(productStatus)}
                     </Badge>
                 </div>

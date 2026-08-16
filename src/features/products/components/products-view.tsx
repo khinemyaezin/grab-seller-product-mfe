@@ -19,25 +19,23 @@ export default function ProductsView({ link, canCreate, onLifecycleEvent }: Prod
   const { filter, updateCriteria, updatePage } = useProductFilter();
 
   return (
-    <Card className="gap-3">
-      <CardContent className="grid gap-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="w-full sm:flex-1">
-        <ProductsFilter onChange={updateCriteria} />
-          </div>
-           {canCreate && (
-            <Button variant="outline" asChild>
-              <Link to="new">Add product</Link>
-            </Button>
-          )}
+    <Card>
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="w-full sm:flex-1">
+          <ProductsFilter onChange={updateCriteria} />
         </div>
-        <ProductTable
-          link={link}
-          filter={filter}
-          onPageChange={updatePage}
-          onLifecycleEvent={onLifecycleEvent}
-        />
-      </CardContent>
+        {canCreate && (
+          <Button variant="outline" size="sm" asChild>
+            <Link to="new">Add product</Link>
+          </Button>
+        )}
+      </CardHeader>
+      <ProductTable
+        link={link}
+        filter={filter}
+        onPageChange={updatePage}
+        onLifecycleEvent={onLifecycleEvent}
+      />
     </Card>
   );
 }

@@ -4,7 +4,6 @@ export function buildMatrixRequest(
     types: VariationType[],
     existing: Variant[] | null,
 ): VariationMatrixRequest {
-    // Array elements can transiently be undefined while react-hook-form reconciles a reset.
     return {
         variantTypes: types
             .filter((type) => !!type?.uuid)
