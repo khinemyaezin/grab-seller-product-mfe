@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@khinemyaezin/seller-ui/components/input";
 import { Button } from "@khinemyaezin/seller-ui/components/button";
 import {
@@ -25,17 +25,18 @@ type VariantTableProps = {
 
 export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const { control } = useFormContext<ProductFormValue>();
-  const { fields, remove } = useFieldArray({
+  const { control, setValue, getValues } = useFormContext<ProductFormValue>();
+  const variants = useWatch({
     control,
     name: "product.variants",
+    defaultValue: [],
   });
 
   const variantFields = useMemo(() =>
-    fields
+    variants
       .map((field, index) => ({ field, index }))
       .filter(({ field }) => field.variations.length > 0),
-    [fields]
+    [variants]
   );
 
   const handleSelectAll = (checked: boolean) => {
@@ -54,7 +55,9 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
 
   function handleDelete() {
     const isDeletingAll = selectedIndices.length === variantFields.length;
-    remove(selectedIndices);
+    const currentVariants = getValues("product.variants") || [];
+    const nextVariants = currentVariants.filter((_, idx) => !selectedIndices.includes(idx));
+    setValue("product.variants", nextVariants, { shouldDirty: true });
     setSelectedIndices([]);
     if (isDeletingAll) {
       onAllVariantsDeleted?.();
@@ -62,11 +65,8 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
   }
 
   return variantFields.length !== 0 && (
-    <div className="mt-3">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          Generated Variants ()
-        </div>
+    <div>
+      <div className="p-(--card-spacing) flex items-center justify-end">
         {selectedIndices.length > 0 && (
           <Button
             type="button"
@@ -77,10 +77,10 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
           </Button>
         )}
       </div>
-      <Table>
+      <Table className="[&_tr>*:first-child]:pl-(--card-spacing) [&_tr>*:last-child]:pr-(--card-spacing) border-t">
         <TableCaption>List of generated product variants.</TableCaption>
         <TableHeader>
-          <TableRow >
+          <TableRow className="bg-muted">
             <TableHead className="w-[50px]">
               <Checkbox
                 checked={selectedIndices.length === variantFields.length && variantFields.length > 0}

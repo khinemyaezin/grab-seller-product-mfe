@@ -9,7 +9,7 @@ import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card";
 import { PricingStandalone } from "./pricing-standalone";
 import { InventoryStandalone } from "./inventory-standalone";
 import ProductBasicFieldSet from "./product-basic-fieldset";
-import ProductVariationFieldSet from "./product-variation-fieldset";
+import ProductNewVariation from "./product-new-variation";
 
 export type ProductNewFormProps = {
   link: HateoasLink,
@@ -53,24 +53,20 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
     label: "New Product",
   });
 
-return (
-  <FormProvider {...form}>
-    <form onSubmit={handleSubmit(submit)}>
-      <div className="flex flex-col gap-6">
-        <Card className="flex-1 w-full">
-          <CardContent>
-            <ProductBasicFieldSet />
-          </CardContent>
-        </Card>
-        <PricingStandalone />
-        <InventoryStandalone />
-        <Card>
-          <CardContent>
-            <ProductVariationFieldSet />
-          </CardContent>
-        </Card>
-      </div>
-    </form>
-  </FormProvider>
-);
+  return (
+    <FormProvider {...form}>
+      <form onSubmit={handleSubmit(submit)}>
+        <div className="flex flex-col gap-6">
+          <Card className="flex-1 w-full">
+            <CardContent>
+              <ProductBasicFieldSet />
+            </CardContent>
+          </Card>
+          <PricingStandalone />
+          <InventoryStandalone />
+          <ProductNewVariation />
+        </div>
+      </form>
+    </FormProvider>
+  );
 }
