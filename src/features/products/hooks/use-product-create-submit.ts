@@ -35,9 +35,15 @@ export function useProductCreateSubmit({
 
   const submit = useCallback(async () => {
     const results = await validate();
-    if(results.some(result=> !result.valid)) return;
     const { contributions, errors } = runDomainSubmit(results);
-    console.log(contributions, errors)
+    const hasSlotErrors = results.some((result) => !result.valid);
+    const hasFieldErrors = Object.keys(errors).length > 0;
+
+    if (hasSlotErrors || hasFieldErrors) {
+      onLifecycleEvent?.({ type: "validationFailed", errors });
+      return;
+    }
+
     mutate(
       {
         link,

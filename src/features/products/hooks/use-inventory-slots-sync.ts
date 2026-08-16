@@ -72,7 +72,7 @@ export function useInventorySlotsSync() {
     }),
     getErrors: (results: SlotValidateResult[]) => {
       const groupIds = new Set(describe().map((d) => d.groupId));
-      return results.filter(result => groupIds.has(result.groupId));
+      return results.filter((result) => !result.valid && groupIds.has(result.groupId));
     }
   }), [describe, setPayload]);
 

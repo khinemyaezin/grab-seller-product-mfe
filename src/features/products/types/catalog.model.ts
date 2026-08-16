@@ -1,3 +1,5 @@
+import type { ExtensionFieldErrors } from "@khinemyaezin/seller-contracts";
+
 export type Product = {
   name: string;
   category: Category | null;
@@ -57,6 +59,7 @@ export type ProductLifecycleEvent =
   | { type: "titleResolved"; title: string }
   | { type: "created" }
   | { type: "createFailed" }
+  | { type: "validationFailed"; name?: string; errors?: ExtensionFieldErrors }
   | { type: "updated" }
   | { type: "updateFailed" }
   | { type: "archived"; name?: string }
