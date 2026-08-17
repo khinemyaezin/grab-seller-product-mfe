@@ -1,21 +1,20 @@
 
 import { Button, ButtonStatus, Skeleton } from "@khinemyaezin/seller-ui/components/index"
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group"
-import { Card, CardContent, CardFooter } from "@khinemyaezin/seller-ui/components/card"
+import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card"
 import { FormProvider, useForm, useWatch } from "react-hook-form"
 import ProductBasicFieldSet from "./product-basic-fieldset"
-import ProductVariationFieldSet from "./product-variation-fieldset"
 import { generateSlug } from "@/features/products/utils"
 import { useProductGet, useProductUpdateMutation, useProductDeleteMutation, useProductRestoreMutation } from "@/features/products/hooks/use-products"
 import { useCatalogLink } from "@/features/products/hooks/use-root"
 import { getVariantName } from "@/features/products/adapters/variation-matrix"
 import { isEqual } from "lodash"
 import { useEffect, useMemo } from "react"
-import { Separator } from "@khinemyaezin/seller-ui/components/separator"
 import { resolveLink } from "@khinemyaezin/seller-api"
 import { ProductFormValue, UPDATE_INTENT, UpdateProductRequest, GetFullProductResponse, ProductLifecycleEvent } from "../types"
 import { ProductStatus } from "./product-status"
 import { Archive, RotateCcw } from "lucide-react"
+import ProductEditVariation from "./product-edit-variation"
 
 export type ProductEditFormProps = {
     productId: string,
@@ -310,41 +309,42 @@ export default function ProductEditForm({
         return acc;
     }, []);
 
+    useEffect(()=> console.log(watchedValues),[watchedValues])
     return (
         <FormProvider {...form}>
             <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col md:flex-row gap-6 items-start">
-                <Card className="w-full md:w-[60%]">
-                    <CardContent>
-                        <ProductBasicFieldSet />
-                        <Separator className="my-6" />
-                        <ProductVariationFieldSet />
-                    </CardContent>
-                    <CardFooter className="flex justify-end">
+                <div className="w-full md:w-[60%] grid gap-6">
+                    <Card>
+                        <CardContent>
+                            <ProductBasicFieldSet />
+                        </CardContent>
+                    </Card>
+                    <ProductEditVariation />
+                    <ButtonGroup>
                         <ButtonGroup>
-                            <ButtonGroup>
-                                {actionButtons}
-                            </ButtonGroup>
-                            {isFormDirty && (
-                                <ButtonGroup>
-                                    <Button type="submit" disabled={updateProductMutation.isPending || updateProductMutation.isSuccess}>
-                                        <ButtonStatus
-                                            status={
-                                                updateProductMutation.isPending
-                                                    ? "pending"
-                                                    : updateProductMutation.isSuccess
-                                                        ? "success"
-                                                        : "idle"
-                                            }
-                                            pendingLabel="Saving…"
-                                            successLabel="Saved">
-                                            Save
-                                        </ButtonStatus>
-                                    </Button>
-                                </ButtonGroup>
-                            )}
+                            {actionButtons}
                         </ButtonGroup>
-                    </CardFooter>
-                </Card>
+                        {isFormDirty && (
+                            <ButtonGroup>
+                                <Button type="submit" disabled={updateProductMutation.isPending || updateProductMutation.isSuccess}>
+                                    <ButtonStatus
+                                        status={
+                                            updateProductMutation.isPending
+                                                ? "pending"
+                                                : updateProductMutation.isSuccess
+                                                    ? "success"
+                                                    : "idle"
+                                        }
+                                        pendingLabel="Saving…"
+                                        successLabel="Saved">
+                                        Save
+                                    </ButtonStatus>
+                                </Button>
+                            </ButtonGroup>
+                        )}
+                    </ButtonGroup>
+                </div>
+
                 <div className="flex w-full md:flex-1 flex-col gap-6">
                     <ProductStatus
                         status={productData.status}

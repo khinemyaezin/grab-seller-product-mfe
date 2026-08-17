@@ -43,6 +43,7 @@ export function useMatrixSync() {
         const fingerprint = buildStructuralFingerprint(variationTypes);
 
         if (variationTypes.length === 0) {
+            setValue("product.variants", [], { shouldDirty: true });
             return;
         }
 
