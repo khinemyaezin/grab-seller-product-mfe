@@ -1,12 +1,13 @@
-import { useInventorySlotsSync } from "../hooks/use-inventory-slots-sync";
 import { useMatrixSync } from "../hooks/use-matrix-sync";
-import { usePricingSlotsSync } from "../hooks/use-pricing-slots-sync";
 import { VariantTable } from "./variant-table";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, FieldGroup } from "@khinemyaezin/seller-ui/components/index";
 import ProductStandaloneVariantField from "./product-standalone-field";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ProductFormValue } from "../types";
+import { usePricingEditSlotsSync } from "../hooks/use-pricing-edit-slots-sync";
+import { pricingEditGroupId } from "../constants/pricing-instance-id";
+import { PricingEditInlineSlot } from "./pricing-edit-inline-slot";
 
 export default function ProductEditVariation() {
     const { control } = useFormContext<ProductFormValue>();
@@ -17,8 +18,7 @@ export default function ProductEditVariation() {
     })
 
     useMatrixSync();
-    usePricingSlotsSync();
-    useInventorySlotsSync();
+    usePricingEditSlotsSync();
 
     const StandaloneVariantFieldGroup = (
         <FieldGroup className="p-6 border-b">
@@ -41,7 +41,17 @@ export default function ProductEditVariation() {
                     standaloneVariantField={isStandalone ? StandaloneVariantFieldGroup : undefined}
                 />
             </CardContent>
-            <VariantTable onAllVariantsDeleted={() => { }} />
+            <VariantTable
+                onAllVariantsDeleted={() => { }}
+                columns={[
+                    {
+                        id: "price",
+                        header: "Price",
+                        cell: (variant) => (
+                            <PricingEditInlineSlot groupId={pricingEditGroupId(variant.matrixKey)} />
+                        ),
+                    }
+                ]} />
         </Card>
     )
 }

@@ -8,6 +8,8 @@ import type {
   GetVariationTypeResult,
   UpdateProductRequest,
   UpdateProductResponse,
+  UpdateSellableProductRequest,
+  UpdateSellableProductResponse,
   VariationMatrixRequest,
   VariationMatrixResponse,
   DeleteProductResponse,
@@ -61,4 +63,11 @@ export const catalogService = {
     headers?: Record<string, string>,
   ) =>
     api.followLink<CreateSellableProductResponse>(link, "POST", request, undefined, headers),
+
+  updateSellableProduct: (
+    link: HateoasLink,
+    request: UpdateSellableProductRequest,
+    headers?: Record<string, string>,
+  ) =>
+    api.followLink<UpdateSellableProductResponse>(link, "POST", request, undefined, headers),
 };

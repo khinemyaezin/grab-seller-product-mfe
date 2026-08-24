@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Input } from "@khinemyaezin/seller-ui/components/input";
 import { Button } from "@khinemyaezin/seller-ui/components/button";
 import {
@@ -10,20 +10,24 @@ import {
   TableHeader,
   TableRow,
 } from "@khinemyaezin/seller-ui/components/table";
-import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Checkbox } from "@khinemyaezin/seller-ui/components/checkbox";
 import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
-import type { ProductFormValue } from "@/features/products/types";
-import { PricingInlineSlot } from "./pricing-inline-slot";
-import { InventoryInlineSlot } from "./inventory-inline-slot";
-import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
-import { inventoryGroupId } from "@/features/products/constants/inventory-group-id";
+import type { ProductFormValue, Variant } from "@/features/products/types";
 
 type VariantTableProps = {
   onAllVariantsDeleted?: () => void;
+  columns?: VariantColumnExtension[];
+
 }
 
-export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
+type VariantColumnExtension = {
+  id: string;
+  header: React.ReactNode;
+  cell: (variant: Variant, index: number) => React.ReactNode;
+};
+
+export function VariantTable({ onAllVariantsDeleted, columns }: VariantTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const { control, setValue, getValues } = useFormContext<ProductFormValue>();
   const variants = useWatch({
@@ -89,8 +93,9 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
             </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Stock</TableHead>
+            {columns?.map((col) => (
+              <TableHead key={col.id}>{col.header}</TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -130,16 +135,11 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                     )}
                   />
                 </TableCell>
-                <TableCell className="px-4 py-2">
-                  <PricingInlineSlot
-                    groupId={pricingInstanceId(variant.matrixKey)}
-                  />
-                </TableCell>
-                <TableCell className="px-4 py-2">
-                  <InventoryInlineSlot
-                    groupId={inventoryGroupId(variant.matrixKey)}
-                  />
-                </TableCell>
+                {columns?.map((col) => (
+                  <TableCell key={col.id} className="px-4 py-2">
+                    {col.cell(variant, index)}
+                  </TableCell>
+                ))}
               </TableRow>
             )
           })}

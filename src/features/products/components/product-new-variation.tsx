@@ -7,6 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, FieldGroup }
 import ProductStandaloneVariantField from "./product-standalone-field";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ProductFormValue } from "../types";
+import { PricingInlineSlot } from "./pricing-inline-slot";
+import { pricingInstanceId } from "../constants/pricing-instance-id";
+import { InventoryInlineSlot } from "./inventory-inline-slot";
+import { inventoryGroupId } from "../constants/inventory-group-id";
 
 export default function ProductNewVariation() {
     const { control } = useFormContext<ProductFormValue>();
@@ -41,7 +45,24 @@ export default function ProductNewVariation() {
                     standaloneVariantField={isStandalone ? StandaloneVariantFieldGroup : undefined}
                 />
             </CardContent>
-            <VariantTable onAllVariantsDeleted={() => { }} />
+            <VariantTable
+                onAllVariantsDeleted={() => { }}
+                columns={[
+                    {
+                        id: "price",
+                        header: "Price",
+                        cell: (variant) => (
+                            <PricingInlineSlot groupId={pricingInstanceId(variant.matrixKey)} />
+                        ),
+                    },
+                    {
+                        id: "stock",
+                        header: "Stock",
+                        cell: (variant) => (
+                            <InventoryInlineSlot groupId={inventoryGroupId(variant.matrixKey)} />
+                        ),
+                    },
+                ]} />
         </Card>
     )
 }
