@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 import { ArrowLeftIcon } from "lucide-react";
 import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
 import { Button } from "@khinemyaezin/seller-ui/components/button";
@@ -13,6 +13,7 @@ import { formatExtensionErrorsForToast } from "@/features/products/utils/error-f
 
 export default function EditProductPage() {
   const { productId } = useParams<{ productId: string }>();
+  const negivate = useNavigate();
   const canEdit = !!useCatalogLink("getProduct");
   const platform = usePlatform();
   const [title, setTitle] = useState<string | undefined>();
@@ -48,19 +49,23 @@ export default function EditProductPage() {
     }
   };
 
+  useEffect(() => {
+    if (!platform?.events) return;
+    const unsubs = [
+      platform?.events.subscribe("form:discard:v1", (msg) => {
+        negivate("..")
+      })
+    ]
+    return () => unsubs.forEach((unsub) => unsub());
+
+  }, [platform?.events])
+
   return (
     <div className="container mx-auto max-w-5xl p-6">
       <Header
         title="Edit Product"
         description="Update your product details."
       >
-        <ButtonGroup>
-          <Button type="button" variant="secondary" asChild>
-            <Link to=".." className="flex gap-2 items-center">
-              <ArrowLeftIcon />
-            </Link>
-          </Button>
-        </ButtonGroup>
       </Header>
       <SlotProvider>
         <ExtensionSyncProvider>
