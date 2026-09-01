@@ -38,12 +38,7 @@ export function useMatrixSync() {
 
     useEffect(() => {
         if (!variationTypes) return;
-
         const fingerprint = buildStructuralFingerprint(variationTypes);
-
-        if (variationTypes.length === 0) {
-            return;
-        }
 
         if (!isInitializedRef.current) {
             lastFingerprintRef.current = fingerprint;
@@ -56,6 +51,7 @@ export function useMatrixSync() {
             regenerate(variationTypes);
         }
     }, [variationTypes]);
+
     return { isGenerating: generateMatrix.isPending };
 }
 
@@ -92,11 +88,11 @@ function responseToVariant(
     existingVariants: Variant[],
     variationTypes: VariationType[]
 ): Variant[] {
-    const oldData: Record<string, { sku?: string; price?: string; variantId?: string }> = {};
+    const oldData: Record<string, any> = {};
 
     if (existingVariants && existingVariants.length > 0) {
         existingVariants.forEach((variant) => {
-            if (variant) oldData[variant.matrixKey] = { sku: variant.sku, variantId: variant.id };
+            if (variant) oldData[variant.matrixKey] = { ...variant };
         });
     }
 
@@ -104,16 +100,18 @@ function responseToVariant(
         (t?.options ?? []).map((o) => [o?.uuid, o?.name])));
 
     return response.variants.map((v) => {
-        const previous = oldData[v.matrixKey];
+        const previous = oldData[v.matrixKey] || {};
         const name = v.variations.map((v) =>
             nameMap[v.optionId] ?? "")
             .filter(Boolean).join(" / ") || "";
 
         return {
+            ...previous,
             name: name,
             matrixKey: v.matrixKey,
             sku: previous?.sku ?? "",
-            variantId: previous?.variantId,
+            id: previous?.id,
+            variantId: previous?.id ?? previous?.variantId,
             price: previous?.price ?? "0.00",
             variations: v.variations.map((vv) => ({
                 optionId: vv.optionId,

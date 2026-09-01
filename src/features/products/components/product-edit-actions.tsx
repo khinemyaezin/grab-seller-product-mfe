@@ -40,54 +40,57 @@ export default function ActionButtonGroup({ links, onLifecycleEvent }: ActionBut
 
     const actionButtons = [
         {
-            show: productRestoreLink,
+            key: "restore",
+            show: Boolean(productRestoreLink),
             onClick: handleOnRestore,
             mutation: restoreProductMutation,
             variant: "secondary" as const,
             pendingLabel: "Restoring",
             successLabel: "Restored",
             label: "Restore",
-            Icon: RotateCcw
+            Icon: RotateCcw,
         },
         {
-            show: productDeleteLink,
+            key: "archive",
+            show: Boolean(productDeleteLink),
             onClick: handleArchive,
             mutation: deleteProductMutation,
             variant: "destructive" as const,
             pendingLabel: "Archiving",
             successLabel: "Archived",
             label: "Archive",
-            Icon: Archive
-        }
-    ].reduce<React.ReactNode[]>((acc, btn, index) => {
-        if (btn.show) {
-            acc.push(
-                <Button
-                    key={index}
-                    type="button"
-                    variant={btn.variant}
-                    disabled={btn.mutation.isPending || btn.mutation.isSuccess}
-                    onClick={btn.onClick}>
-                    <ButtonStatus
-                        status={
-                            btn.mutation.isPending
-                                ? "pending"
-                                : btn.mutation.isSuccess
-                                    ? "success"
-                                    : "idle"
-                        }
-                        pendingLabel={btn.pendingLabel}
-                        successLabel={btn.successLabel}>
-                        <btn.Icon className="mr-1 h-4 w-4" />
-                        {btn.label}
-                    </ButtonStatus>
-                </Button>
-            );
-        }
-        return acc;
-    }, []);
+            Icon: Archive,
+        },
+    ];
 
     return (
-        actionButtons.map(btn => btn)
-    )
+        <>
+            {actionButtons
+                .filter((btn) => btn.show)
+                .map((btn) => (
+                    <Button
+                        key={btn.key}
+                        type="button"
+                        variant={btn.variant}
+                        disabled={btn.mutation.isPending || btn.mutation.isSuccess}
+                        onClick={btn.onClick}
+                    >
+                        <ButtonStatus
+                            status={
+                                btn.mutation.isPending
+                                    ? "pending"
+                                    : btn.mutation.isSuccess
+                                        ? "success"
+                                        : "idle"
+                            }
+                            pendingLabel={btn.pendingLabel}
+                            successLabel={btn.successLabel}
+                        >
+                            <btn.Icon className="mr-1 h-4 w-4" />
+                            {btn.label}
+                        </ButtonStatus>
+                    </Button>
+                ))}
+        </>
+    );
 }

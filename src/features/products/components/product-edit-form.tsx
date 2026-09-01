@@ -13,6 +13,7 @@ import { resolveLink } from "@khinemyaezin/seller-api"
 import ActionButtonGroup from "./product-edit-actions"
 import { useContextBar } from "@khinemyaezin/seller-ui"
 import { useIsExtensionDirty } from "../context/extension-sync-store"
+import useProductNameWatch from "../hooks/use-product-name-watch"
 
 export type ProductEditFormProps = {
     productId: string,
@@ -27,7 +28,7 @@ export default function ProductEditForm({
         defaultValues: DEFAULT_PRODUCT_FORM_VALUE,
         mode: "onSubmit",
     });
-    const { handleSubmit, formState: { isDirty } } = form;
+    const { control, handleSubmit, formState: { isDirty } } = form;
 
     const { isLoading: isFetchingProductById, refetch, status: productStatus, actions } = useProductEdit({
         productId,
@@ -42,7 +43,7 @@ export default function ProductEditForm({
         refetch,
     });
     const [isExtensionDirty, resetExtensionDirty] = useIsExtensionDirty();
-
+    useProductNameWatch({ control, onLifecycleEvent });
     useContextBar({
         dirty: isDirty || isExtensionDirty,
         onSave: handleSubmit(submit),

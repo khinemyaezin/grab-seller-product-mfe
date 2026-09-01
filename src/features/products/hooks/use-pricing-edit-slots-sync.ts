@@ -8,7 +8,7 @@ import type {
   PricingEditPayload,
   StateEventPayloads,
 } from "@khinemyaezin/seller-contracts";
-import type { ProductFormValue } from "@/features/products/types";
+import type { ProductFormValue, UpdateSellableProductRequest } from "@/features/products/types";
 import {
   collectDomainPayloads,
   useExtensionSyncStore,
@@ -19,7 +19,6 @@ import {
   projectPricingEditLines,
   type PricingEditSlotDescriptor,
 } from "@/features/products/adapters/pricing-edit-slots";
-import type { CreateSellableProductRequest } from "@/features/products/types";
 
 export const PRICING_EDIT_DOMAIN = "pricing-edit";
 
@@ -56,7 +55,7 @@ export function usePricingEditSlotsSync() {
     });
   }, [events]);
 
-  const contract = useMemo<DomainSubmitContract<Pick<CreateSellableProductRequest, "pricingLines">>>(() => ({
+  const contract = useMemo<DomainSubmitContract<Pick<UpdateSellableProductRequest, "pricingLines">>>(() => ({
     sync: (results: SlotValidateResult[]) => {
       for (const result of results) {
         if (!isPricingEditValidateResult(result)) continue;
@@ -68,8 +67,8 @@ export function usePricingEditSlotsSync() {
         });
       }
     },
-    project: (): Pick<CreateSellableProductRequest, "pricingLines"> => ({
-      pricingLines: projectPricingEditLines(describe()) as CreateSellableProductRequest["pricingLines"],
+    project: (): Pick<UpdateSellableProductRequest, "pricingLines"> => ({
+      pricingLines: projectPricingEditLines(describe()),
     }),
     getErrors: (results: SlotValidateResult[]) => {
       const groupIds = new Set(describe().map((d) => d.groupId));

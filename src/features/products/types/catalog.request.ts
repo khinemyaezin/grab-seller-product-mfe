@@ -128,8 +128,7 @@ export type UpdateSellableProductInventoryLine = {
 
 export type UpdateSellableProductPricingLine = {
   sku: string;
-  priceSetId?: string;
-  priceId?: string;
+  variantId?: string;
   title?: string;
   currencyCode: string;
   amount: number;

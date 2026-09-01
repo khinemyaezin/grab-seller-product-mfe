@@ -7,6 +7,7 @@ import {
 import type { SlotValidateResult } from "@khinemyaezin/seller-ui";
 import type {
   ProductFormValue,
+  UpdateSellableProductPricingLine,
 } from "@/features/products/types";
 import {
   pricingEditGroupId,
@@ -74,18 +75,18 @@ export function buildPricingEditSlotDescriptors(
 
 export function projectPricingEditLines(
   descriptors: PricingEditSlotDescriptor[],
-): unknown[] {
-  const lines: unknown[] = [];
+): UpdateSellableProductPricingLine[] {
+  const lines: UpdateSellableProductPricingLine[] = [];
 
   for (const descriptor of descriptors) {
     if (!descriptor.payload) continue;
 
+    const variantId = descriptor.context.variantId.trim();
     lines.push({
       sku: descriptor.payload.sku,
+      ...(variantId ? { variantId } : {}),
       currencyCode: descriptor.payload.currencyCode,
       amount: descriptor.payload.amount,
-      priceId: descriptor.payload.priceId,
-      priceSetId: descriptor.payload.priceSetId,
     });
   }
 
