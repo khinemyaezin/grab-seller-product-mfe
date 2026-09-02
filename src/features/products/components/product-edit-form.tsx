@@ -1,7 +1,7 @@
 
 import { Skeleton } from "@khinemyaezin/seller-ui/components/index"
 import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card"
-import { FormProvider, useForm } from "react-hook-form"
+import { FormProvider, useForm, useWatch } from "react-hook-form"
 import ProductBasicFieldSet from "./product-basic-fieldset"
 import { useProductUpdateSubmit } from "@/features/products/hooks/use-product-update-submit"
 import { useProductEdit, DEFAULT_PRODUCT_FORM_VALUE } from "@/features/products/hooks/use-product-edit"
@@ -14,6 +14,7 @@ import ActionButtonGroup from "./product-edit-actions"
 import { useContextBar } from "@khinemyaezin/seller-ui"
 import { useIsExtensionDirty } from "../context/extension-sync-store"
 import useProductNameWatch from "../hooks/use-product-name-watch"
+import { InventoryEditStandalone } from "./inventory-edit-standalone"
 
 export type ProductEditFormProps = {
     productId: string,
@@ -56,7 +57,7 @@ export default function ProductEditForm({
     });
 
     const productPublishLink = resolveLink(actions, "publish-product");
-
+    
     if (isFetchingProductById) {
         return (
             <div className="">
@@ -85,6 +86,7 @@ export default function ProductEditForm({
                         </CardContent>
                     </Card>
                     <PricingEditStandalone />
+                    <InventoryEditStandalone/>
                     <ProductEditVariation />
                     <ActionButtonGroup links={actions} onLifecycleEvent={onLifecycleEvent} />
                 </div>

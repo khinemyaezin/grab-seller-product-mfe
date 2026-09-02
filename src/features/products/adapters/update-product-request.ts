@@ -16,9 +16,10 @@ export function determineUpdateIntent({
   hasVariantChanges: boolean;
   hasStandaloneChanges: boolean;
 }): UPDATE_INTENT {
-  if (hasVariationTypes && hasVariantChanges || hasVariationTypeChanges) return "FULL_SYNC";
-  if (hasStandaloneChanges) return "COLLAPSE_TO_STANDALONE";
-  return "LEAVE_AS_IS";
+  if (hasVariationTypes) 
+    return "FULL_SYNC"
+  else 
+    return "COLLAPSE_TO_STANDALONE";
 }
 
 export function buildUpdateProductRequest(
