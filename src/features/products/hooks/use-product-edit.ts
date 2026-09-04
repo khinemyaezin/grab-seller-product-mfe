@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { ProductFormValue, GetFullProductResponse, ProductLifecycleEvent } from "../types";
 import { useProductGet } from "./use-products";
 import { useCatalogLink } from "./use-root";
@@ -67,13 +67,12 @@ function transformProductToFormValue(apiData: GetFullProductResponse): ProductFo
 }
 
 export type UseProductEditProps = {
-    productId: string,
+    productId: string;
     onLifecycleEvent?: (event: ProductLifecycleEvent) => void;
-    form: UseFormReturn<ProductFormValue>;
 };
 
-export function useProductEdit({ productId, form }: UseProductEditProps) {
-    const { reset } = form;
+export function useProductEdit({ productId }: UseProductEditProps) {
+    const { reset } = useFormContext<ProductFormValue>();
     const getProductLink = useCatalogLink("getProduct");
     const { data, isLoading, refetch } = useProductGet(getProductLink, productId);
 

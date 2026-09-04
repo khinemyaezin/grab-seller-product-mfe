@@ -5,7 +5,7 @@ import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
 import type { ButtonStatusState } from "@khinemyaezin/seller-ui/components/index";
 import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
 import { buildCreateSellableProductRequest } from "@/features/products/adapters/create-sellable-product-request";
-import { useExtensionSyncStore } from "@/features/products/context/extension-sync-store";
+import { useCreateExtensionSyncStore } from "@/features/products/context/extension-sync-store";
 import type {
   ProductFormValue,
   ProductLifecycleEvent,
@@ -29,7 +29,7 @@ export function useProductCreateSubmit({
   onLifecycleEvent,
 }: UseProductCreateSubmitOptions): UseProductCreateSubmitResult {
   const { validate, isValidating } = useValidateAllSlots();
-  const { runDomainSubmit } = useExtensionSyncStore();
+  const { runDomainSubmit } = useCreateExtensionSyncStore();
   const mutation = useCreateSellableProductMutation();
   const { mutate, reset: resetMutation } = mutation;
 

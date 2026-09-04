@@ -7,14 +7,8 @@ import { generateSlug } from "@/features/products/utils";
 
 export function determineUpdateIntent({
   hasVariationTypes,
-  hasVariantChanges,
-  hasVariationTypeChanges,
-  hasStandaloneChanges,
 }: {
   hasVariationTypes: boolean;
-  hasVariationTypeChanges: boolean;
-  hasVariantChanges: boolean;
-  hasStandaloneChanges: boolean;
 }): UPDATE_INTENT {
   if (hasVariationTypes) 
     return "FULL_SYNC"

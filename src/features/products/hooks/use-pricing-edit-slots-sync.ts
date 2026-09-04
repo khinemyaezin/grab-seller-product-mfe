@@ -11,7 +11,7 @@ import type {
 import type { ProductFormValue, UpdateSellableProductRequest } from "@/features/products/types";
 import {
   collectDomainPayloads,
-  useExtensionSyncStore,
+  useUpdateExtensionSyncStore,
 } from "@/features/products/context/extension-sync-store";
 import {
   buildPricingEditSlotDescriptors,
@@ -32,7 +32,7 @@ export function usePricingEditSlotsSync() {
   const platform = usePlatform();
   const events = platform?.events;
   const { registerDomain, getSnapshot, setPayload, prune, clearDomain } =
-    useExtensionSyncStore();
+    useUpdateExtensionSyncStore();
 
   const variants = useWatch({ control, name: "product.variants", defaultValue: [] });
   const standaloneSku = useWatch({ control, name: "product.standaloneVariant.sku", defaultValue: "" });

@@ -11,7 +11,7 @@ import type {
 import type { CreateSellableProductRequest, ProductFormValue } from "@/features/products/types";
 import {
   collectDomainPayloads,
-  useExtensionSyncStore,
+  useCreateExtensionSyncStore,
 } from "@/features/products/context/extension-sync-store";
 import {
   buildPricingSlotDescriptors,
@@ -32,7 +32,7 @@ export function usePricingSlotsSync() {
   const platform = usePlatform();
   const events = platform?.events;
   const { registerDomain, getSnapshot, setPayload, prune, clearDomain } =
-    useExtensionSyncStore();
+    useCreateExtensionSyncStore();
 
   const variants = useWatch({ control, name: "product.variants", defaultValue: [] });
   const standaloneSku = useWatch({ control, name: "product.standaloneVariant.sku", defaultValue: "" });

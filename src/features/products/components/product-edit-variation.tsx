@@ -1,11 +1,9 @@
-import { useMatrixSync } from "../hooks/use-matrix-sync";
 import { VariantTable } from "./variant-table";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, FieldGroup } from "@khinemyaezin/seller-ui/components/index";
 import ProductStandaloneVariantField from "./product-standalone-field";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ProductFormValue } from "../types";
-import { usePricingEditSlotsSync } from "../hooks/use-pricing-edit-slots-sync";
 import { pricingEditGroupId } from "../constants/pricing-instance-id";
 import { PricingEditInlineSlot } from "./pricing-edit-inline-slot";
 
@@ -16,9 +14,6 @@ export default function ProductEditVariation() {
         name: "variationTypes",
         compute: (value) => value.length == 0
     })
-
-    useMatrixSync();
-    usePricingEditSlotsSync();
 
     const StandaloneVariantFieldGroup = (
         <FieldGroup className="p-6 border-b">
