@@ -10,32 +10,37 @@ import {
   TableHeader,
   TableRow,
 } from "@khinemyaezin/seller-ui/components/table";
-import { Controller, useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { Checkbox } from "@khinemyaezin/seller-ui/components/checkbox";
 import { Field, FieldError } from "@khinemyaezin/seller-ui/components/field";
-import type { ProductFormValue } from "@/features/products/types";
-import { PricingInlineSlot } from "./pricing-inline-slot";
-import { InventoryInlineSlot } from "./inventory-inline-slot";
-import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
-import { inventoryGroupId } from "@/features/products/constants/inventory-group-id";
+import type { ProductFormValue, Variant } from "@/features/products/types";
 
 type VariantTableProps = {
   onAllVariantsDeleted?: () => void;
+  columns?: VariantColumnExtension[];
+
 }
 
-export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
+type VariantColumnExtension = {
+  id: string;
+  header: React.ReactNode;
+  cell: (variant: Variant, index: number) => React.ReactNode;
+};
+
+export function VariantTable({ onAllVariantsDeleted, columns }: VariantTableProps) {
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
-  const { control } = useFormContext<ProductFormValue>();
-  const { fields, remove } = useFieldArray({
+  const { control, setValue, getValues } = useFormContext<ProductFormValue>();
+  const variants = useWatch({
     control,
     name: "product.variants",
+    defaultValue: [],
   });
 
   const variantFields = useMemo(() =>
-    fields
+    variants
       .map((field, index) => ({ field, index }))
       .filter(({ field }) => field.variations.length > 0),
-    [fields]
+    [variants]
   );
 
   const handleSelectAll = (checked: boolean) => {
@@ -54,7 +59,9 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
 
   function handleDelete() {
     const isDeletingAll = selectedIndices.length === variantFields.length;
-    remove(selectedIndices);
+    const currentVariants = getValues("product.variants") || [];
+    const nextVariants = currentVariants.filter((_, idx) => !selectedIndices.includes(idx));
+    setValue("product.variants", nextVariants, { shouldDirty: true });
     setSelectedIndices([]);
     if (isDeletingAll) {
       onAllVariantsDeleted?.();
@@ -62,11 +69,8 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
   }
 
   return variantFields.length !== 0 && (
-    <div className="mt-3">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          Generated Variants ()
-        </div>
+    <div>
+      <div className="p-(--card-spacing) flex items-center justify-end">
         {selectedIndices.length > 0 && (
           <Button
             type="button"
@@ -77,10 +81,10 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
           </Button>
         )}
       </div>
-      <Table>
+      <Table className="[&_tr>*:first-child]:pl-(--card-spacing) [&_tr>*:last-child]:pr-(--card-spacing) border-t">
         <TableCaption>List of generated product variants.</TableCaption>
         <TableHeader>
-          <TableRow >
+          <TableRow className="bg-muted">
             <TableHead className="w-[50px]">
               <Checkbox
                 checked={selectedIndices.length === variantFields.length && variantFields.length > 0}
@@ -89,8 +93,9 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
             </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>SKU</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Stock</TableHead>
+            {columns?.map((col) => (
+              <TableHead key={col.id}>{col.header}</TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -130,16 +135,11 @@ export function VariantTable({ onAllVariantsDeleted }: VariantTableProps) {
                     )}
                   />
                 </TableCell>
-                <TableCell className="px-4 py-2">
-                  <PricingInlineSlot
-                    groupId={pricingInstanceId(variant.matrixKey)}
-                  />
-                </TableCell>
-                <TableCell className="px-4 py-2">
-                  <InventoryInlineSlot
-                    groupId={inventoryGroupId(variant.matrixKey)}
-                  />
-                </TableCell>
+                {columns?.map((col) => (
+                  <TableCell key={col.id} className="px-4 py-2">
+                    {col.cell(variant, index)}
+                  </TableCell>
+                ))}
               </TableRow>
             )
           })}

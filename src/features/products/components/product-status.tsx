@@ -43,7 +43,7 @@ export function getProductStatusBadgeClass(status: string): "success" | "warning
 }
 
 export interface ProductStatusSelectProps {
-    status: string;
+    status: string | undefined;
     link?: HateoasLink,
     onLifecycleEvent?: (event: ProductLifecycleEvent) => void;
 }

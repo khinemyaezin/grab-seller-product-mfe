@@ -8,12 +8,12 @@ import {
 } from "react";
 import type { ReactNode } from "react";
 import type { SlotValidateResult } from "@khinemyaezin/seller-ui";
-import { ProductContributions } from "../types/catalog.request";
+import { ProductContributions, UpdateProductContributions } from "../types/catalog.request";
 import { DomainSubmitContract, DomainSubmitResult, ExtensionFieldErrors, ExtensionSyncStore, SlotEntry } from "@khinemyaezin/seller-contracts";
 
 const EMPTY_ENTRIES: ReadonlyMap<string, SlotEntry> = new Map();
 
-const inertStore: ExtensionSyncStore<ProductContributions> = {
+const inertStore: ExtensionSyncStore<any> = {
   registerDomain: () => { },
   runDomainSubmit: () => ({ domains: [], contributions: {}, errors: {} }),
   subscribe: () => () => { },
@@ -24,10 +24,10 @@ const inertStore: ExtensionSyncStore<ProductContributions> = {
   clearDomain: () => { },
 };
 
-const ExtensionSyncContext = createContext<ExtensionSyncStore<ProductContributions>>(inertStore);
+const ExtensionSyncContext = createContext<ExtensionSyncStore<any>>(inertStore);
 
 export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
-  const contractsRef = useRef(new Map<string, DomainSubmitContract<ProductContributions>>());
+  const contractsRef = useRef(new Map<string, DomainSubmitContract<any>>());
   const entriesRef = useRef<ReadonlyMap<string, SlotEntry>>(EMPTY_ENTRIES);
   const listenersRef = useRef(new Set<() => void>());
 
@@ -36,7 +36,7 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const registerDomain = useCallback(
-    (domain: string, contract: DomainSubmitContract<ProductContributions> | undefined) => {
+    (domain: string, contract: DomainSubmitContract<any> | undefined) => {
       if (contract) {
         contractsRef.current.set(domain, contract);
       } else {
@@ -47,14 +47,14 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
   );
 
   const runDomainSubmit = useCallback(
-    (results: SlotValidateResult[]): DomainSubmitResult<ProductContributions> => {
+    (results: SlotValidateResult[]): DomainSubmitResult<any> => {
       const registered = [...contractsRef.current.entries()];
 
       for (const [, contract] of registered) {
         contract.sync(results);
       }
 
-      const contributions: ProductContributions = {};
+      const contributions: Record<string, unknown> = {};
       for (const [, contract] of registered) {
         for (const [slice, value] of Object.entries(contract.project())) {
           if (value === undefined) continue;
@@ -152,7 +152,7 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
     [notify],
   );
 
-  const store = useMemo<ExtensionSyncStore<ProductContributions>>(
+  const store = useMemo<ExtensionSyncStore<any>>(
     () => ({
       registerDomain,
       runDomainSubmit,
@@ -182,7 +182,15 @@ export function ExtensionSyncProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useExtensionSyncStore(): ExtensionSyncStore<ProductContributions> {
+function useExtensionSyncStore(): ExtensionSyncStore<any> {
+  return useContext(ExtensionSyncContext);
+}
+
+export function useCreateExtensionSyncStore(): ExtensionSyncStore<ProductContributions> {
+  return useContext(ExtensionSyncContext);
+}
+
+export function useUpdateExtensionSyncStore(): ExtensionSyncStore<UpdateProductContributions> {
   return useContext(ExtensionSyncContext);
 }
 

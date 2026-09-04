@@ -21,7 +21,12 @@ export type {
   CreateSellableProductRequest,
   CreateSellableProductPricingLine,
   CreateSellableProductInventoryLine,
+  ProductContributions,
+  UpdateProductContributions,
   UpdateProductRequest,
+  UpdateSellableProductRequest,
+  UpdateSellableProductInventoryLine,
+  UpdateSellableProductPricingLine,
   UPDATE_INTENT,
   ProductSearchRequest,
   VariationMatrixRequest,
@@ -47,6 +52,7 @@ export type {
   DeleteProductResponse,
   WorkflowsRoot,
   CreateSellableProductResponse,
+  UpdateSellableProductResponse,
 } from "./catalog.response";
 
 // Form Values

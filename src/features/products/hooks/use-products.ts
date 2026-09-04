@@ -8,6 +8,8 @@ import type {
   GetFullProductResponse,
   UpdateProductRequest,
   UpdateProductResponse,
+  UpdateSellableProductRequest,
+  UpdateSellableProductResponse,
   ProductModerationResponse,
   DeleteProductResponse,
   ProductFilterFormValue,
@@ -36,6 +38,23 @@ export function useCreateSellableProductMutation() {
     mutationFn: ({ link, request }) => catalogService.createSellableProduct(link, request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+}
+
+export function useUpdateSellableProductMutation() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    UpdateSellableProductResponse,
+    Error,
+    { link: HateoasLink; request: UpdateSellableProductRequest }
+  >({
+    mutationFn: ({ link, request }) => catalogService.updateSellableProduct(link, request),
+    onSuccess: (resp) => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      if (resp.productId) {
+        queryClient.invalidateQueries({ queryKey: ["product", resp.productId] });
+      }
     },
   });
 }

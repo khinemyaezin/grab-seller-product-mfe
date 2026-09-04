@@ -66,6 +66,10 @@ export type ProductContributions = Partial<
   Pick<CreateSellableProductRequest, "pricingLines" | "inventoryLines">
 >;
 
+export type UpdateProductContributions = Partial<
+  Pick<UpdateSellableProductRequest, "pricingLines" | "inventoryLines">
+>;
+
 export type CreateSellableProductInventoryLine = {
   sku: string;
   locationId: string;
@@ -103,6 +107,48 @@ export interface UpdateProductRequest {
     }[];
   };
 }
+
+export type UpdateSellableProductInventoryLine = {
+  sku: string;
+  locationId?: string;
+  inventoryItemId?: string;
+  op: "CREATE" | "ADJUST";
+  create?: {
+    initialQuantity: number;
+    safetyStock?: number;
+    reorderPoint?: number;
+    reorderQuantity?: number;
+    maxStock?: number;
+  };
+  adjust?: {
+    newOnHandQuantity: number;
+    reason: string;
+  };
+};
+
+export type UpdateSellableProductPricingLine = {
+  sku: string;
+  variantId?: string;
+  title?: string;
+  currencyCode: string;
+  amount: number;
+  minQuantity?: number | null;
+  maxQuantity?: number | null;
+  rules?: {
+    attribute: string;
+    value: string;
+    operator?: string;
+    priority?: number;
+  }[];
+};
+
+export type UpdateSellableProductRequest = {
+  productId: string;
+  product: UpdateProductRequest;
+  inventoryLines?: UpdateSellableProductInventoryLine[];
+  pricingLines?: UpdateSellableProductPricingLine[];
+  idempotencyKey?: string;
+};
 
 export interface ProductSearchRequest {
   query?: string,

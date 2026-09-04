@@ -16,6 +16,7 @@ export type Variant = {
   name: string;
   matrixKey: string;
   sku: string;
+  id?: string;
   variations: Variation[];
 };
 

@@ -2,7 +2,7 @@
 import { Link } from "react-router";
 import { HateoasLink } from "@khinemyaezin/seller-api";
 import { Button } from "@khinemyaezin/seller-ui/components/button";
-import { Card, CardAction, CardContent, CardHeader } from "@khinemyaezin/seller-ui/components/card";
+import { Card, CardHeader } from "@khinemyaezin/seller-ui/components/card";
 import ProductTable from "./product-table";
 import ProductsFilter from "./products-filter";
 import { useProductFilter } from "@/features/products/hooks/use-product-filter";

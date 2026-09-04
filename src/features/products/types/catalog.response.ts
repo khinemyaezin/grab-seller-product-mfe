@@ -11,6 +11,7 @@ export interface CatalogRoot {
   searchVariantOptions?: HateoasLink
   generateVariationMatrix?: HateoasLink
   createSellableProduct?: HateoasLink
+  updateSellableProduct?: HateoasLink
 }
 
 export type VariationMatrixResponseVariation = {
@@ -151,3 +152,5 @@ export type CreateSellableProductResponse = {
   errorMessage?: string | null;
   _links?: Record<string, HateoasLink>;
 };
+
+export type UpdateSellableProductResponse = CreateSellableProductResponse;

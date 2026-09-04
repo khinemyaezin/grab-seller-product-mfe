@@ -17,6 +17,8 @@ describe("catalog discovery", () => {
         "search-variant-types": { href: "/catalog/variant-types" },
         "search-variant-options": { href: "/catalog/variant-options" },
         "generate-variation-matrix": { href: "/catalog/variation-matrix" },
+        "create-sellable-product": { href: "/api/v1/workflows/create-sellable-product" },
+        "update-sellable-product": { href: "/api/v1/workflows/update-sellable-product" },
       },
     }, { headers: { "content-type": "application/hal+json" } })));
 
@@ -31,5 +33,7 @@ describe("catalog discovery", () => {
     expect(root.searchVariantTypes?.href).toBe("/catalog/variant-types");
     expect(root.searchVariantOptions?.href).toBe("/catalog/variant-options");
     expect(root.generateVariationMatrix?.href).toBe("/catalog/variation-matrix");
+    expect(root.createSellableProduct?.href).toBe("/api/v1/workflows/create-sellable-product");
+    expect(root.updateSellableProduct?.href).toBe("/api/v1/workflows/update-sellable-product");
   });
 });
