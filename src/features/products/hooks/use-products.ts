@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { catalogService } from "@/features/products/api";
 import type { HateoasLink } from "@khinemyaezin/seller-api";
 import type {
@@ -18,44 +18,49 @@ import { resolveUrlTemplate } from "@khinemyaezin/seller-api";
 import { ProductSearchRequest } from "../types/catalog.request";
 import { ProductSearchResponse } from "../types/catalog.response";
 
+export function invalidateProductsQueries(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({ queryKey: ["products"] });
+}
+
+export function invalidateProductDetailQueries(queryClient: QueryClient, productId: string) {
+  return queryClient.invalidateQueries({ queryKey: ["product", productId] });
+}
+
+export function invalidateProductQueries(queryClient: QueryClient, productId?: string) {
+  const promises = [invalidateProductsQueries(queryClient)];
+  if (productId) {
+    promises.push(invalidateProductDetailQueries(queryClient, productId));
+  }
+  return Promise.all(promises);
+}
+
 export function useProductMutation() {
   const queryClient = useQueryClient();
   return useMutation<void, Error, { link: HateoasLink; request: CreateProductRequest }>({
     mutationFn: ({ link, request }) => catalogService.createProduct(link, request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      invalidateProductsQueries(queryClient);
     },
   });
 }
 
 export function useCreateSellableProductMutation() {
-  const queryClient = useQueryClient();
   return useMutation<
     CreateSellableProductResponse,
     Error,
     { link: HateoasLink; request: CreateSellableProductRequest }
   >({
     mutationFn: ({ link, request }) => catalogService.createSellableProduct(link, request),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
   });
 }
 
 export function useUpdateSellableProductMutation() {
-  const queryClient = useQueryClient();
   return useMutation<
     UpdateSellableProductResponse,
     Error,
     { link: HateoasLink; request: UpdateSellableProductRequest }
   >({
     mutationFn: ({ link, request }) => catalogService.updateSellableProduct(link, request),
-    onSuccess: (resp) => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      if (resp.productId) {
-        queryClient.invalidateQueries({ queryKey: ["product", resp.productId] });
-      }
-    },
   });
 }
 
@@ -64,7 +69,7 @@ export function useProductUpdateMutation() {
   return useMutation<UpdateProductResponse, Error, { link: HateoasLink; request: UpdateProductRequest }>({
     mutationFn: ({ link, request }) => catalogService.updateProduct(link, request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+      invalidateProductsQueries(queryClient);
     },
   });
 }
@@ -74,8 +79,7 @@ export function useProductDeleteMutation() {
   return useMutation<DeleteProductResponse, Error, { link: HateoasLink }>({
     mutationFn: ({ link }) => catalogService.deleteProduct(link),
     onSuccess: (resp) => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["product", resp.productId] });
+      invalidateProductQueries(queryClient, resp.productId);
     },
   });
 }
@@ -85,8 +89,7 @@ export function useProductRestoreMutation() {
   return useMutation<ProductModerationResponse, Error, { link: HateoasLink }>({
     mutationFn: ({ link }) => catalogService.restoreProduct(link),
     onSuccess: (resp) => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["product", resp.productId] });
+      invalidateProductQueries(queryClient, resp.productId);
     },
   });
 }
@@ -121,8 +124,7 @@ export function useProductPublishMutation() {
   return useMutation<ProductModerationResponse, Error, { link: HateoasLink }>({
     mutationFn: ({ link }) => catalogService.publishProduct(link),
     onSuccess: (resp) => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["product", resp.productId] });
+      invalidateProductQueries(queryClient, resp.productId);
     },
   });
 }

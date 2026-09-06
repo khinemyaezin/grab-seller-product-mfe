@@ -1,4 +1,4 @@
-import { FormProvider, useForm } from "react-hook-form"
+import { FormProvider, useForm } from "react-hook-form";
 import { ProductFormValue } from "../types";
 import type { ProductLifecycleEvent } from "../types";
 import { HateoasLink } from "@khinemyaezin/seller-api";
@@ -12,8 +12,8 @@ import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductNewVariation from "./product-new-variation";
 
 export type ProductNewFormProps = {
-  link: HateoasLink,
-  onLifecycleEvent?: (event: ProductLifecycleEvent) => void
+  link: HateoasLink;
+  onLifecycleEvent?: (event: ProductLifecycleEvent) => void;
 };
 
 const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
@@ -39,12 +39,31 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
   const { submit } = useProductCreateSubmit({
     form,
     link,
-    onLifecycleEvent,
+    onLifecycleEvent: (event) => {
+      if (event.type === "created") {
+        resetExtensionDirty();
+      }
+      onLifecycleEvent?.(event);
+    },
   });
 
   useContextBar({
     dirty: isDirty || isExtensionDirty,
-    onSave: handleSubmit(submit),
+    onSave: async () => {
+      let valid = false;
+      await handleSubmit(
+        async () => {
+          valid = true;
+          await submit();
+        },
+        () => {
+          valid = false;
+        },
+      )();
+      if (!valid) {
+        throw new Error("Form validation failed");
+      }
+    },
     onDiscard: () => {
       form.reset();
       resetExtensionDirty();
