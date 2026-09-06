@@ -1,15 +1,23 @@
 import { useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { HateoasLink } from "@khinemyaezin/seller-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
-import type { ButtonStatusState } from "@khinemyaezin/seller-ui/components/index";
-import { useCreateSellableProductMutation } from "@/features/products/hooks/use-products";
+import {
+  useCreateSellableProductMutation,
+  invalidateProductsQueries,
+} from "@/features/products/hooks/use-products";
 import { buildCreateSellableProductRequest } from "@/features/products/adapters/create-sellable-product-request";
 import { useCreateExtensionSyncStore } from "@/features/products/context/extension-sync-store";
 import type {
   ProductFormValue,
   ProductLifecycleEvent,
 } from "@/features/products/types";
+import { CREATE_SELLABLE_PRODUCT_WORKFLOW } from "@/features/products/constants/create-sellable-product-workflow";
+import {
+  useWorkflowAwaiter,
+  WorkflowTimeoutError,
+} from "@/features/products/hooks/use-workflow-awaiter";
 
 export type UseProductCreateSubmitOptions = {
   form: UseFormReturn<ProductFormValue>;
@@ -19,8 +27,6 @@ export type UseProductCreateSubmitOptions = {
 
 export type UseProductCreateSubmitResult = {
   submit: () => Promise<void>;
-  isBusy: boolean;
-  status: ButtonStatusState;
 };
 
 export function useProductCreateSubmit({
@@ -28,10 +34,15 @@ export function useProductCreateSubmit({
   link,
   onLifecycleEvent,
 }: UseProductCreateSubmitOptions): UseProductCreateSubmitResult {
-  const { validate, isValidating } = useValidateAllSlots();
+  const queryClient = useQueryClient();
+  const { validate } = useValidateAllSlots();
   const { runDomainSubmit } = useCreateExtensionSyncStore();
   const mutation = useCreateSellableProductMutation();
-  const { mutate, reset: resetMutation } = mutation;
+  const { mutateAsync, reset: resetMutation } = mutation;
+
+  const { awaitWorkflow } = useWorkflowAwaiter({
+    workflowName: CREATE_SELLABLE_PRODUCT_WORKFLOW,
+  });
 
   const submit = useCallback(async () => {
     const results = await validate();
@@ -41,39 +52,44 @@ export function useProductCreateSubmit({
 
     if (hasSlotErrors || hasFieldErrors) {
       onLifecycleEvent?.({ type: "validationFailed", errors });
-      return;
+      throw new Error("Validation failed");
     }
 
-    mutate(
-      {
-        link,
-        request: buildCreateSellableProductRequest(form.getValues(), contributions),
-      },
-      {
-        onSuccess: () => {
-          onLifecycleEvent?.({ type: "created" });
-          resetMutation();
-          form.reset();
-        },
-        onError: () => {
-          onLifecycleEvent?.({ type: "createFailed" });
-          resetMutation();
-        },
-      },
-    );
-  }, [form, link, mutate, onLifecycleEvent, resetMutation, runDomainSubmit, validate]);
+    const payload = buildCreateSellableProductRequest(form.getValues(), contributions);
 
-  const status: ButtonStatusState = mutation.isPending
-    ? "pending"
-    : mutation.isSuccess
-      ? "success"
-      : mutation.isError
-        ? "failed"
-        : "idle";
+    try {
+      await awaitWorkflow((idempotencyKey) =>
+        mutateAsync({
+          link,
+          request: { ...payload, idempotencyKey },
+        }),
+      );
+      void invalidateProductsQueries(queryClient);
+      onLifecycleEvent?.({ type: "created" });
+      resetMutation();
+      form.reset();
+    } catch (error) {
+      resetMutation();
+      if (error instanceof WorkflowTimeoutError) {
+        onLifecycleEvent?.({ type: "createTimedOut" });
+      } else {
+        onLifecycleEvent?.({ type: "createFailed" });
+      }
+      throw error;
+    }
+  }, [
+    awaitWorkflow,
+    form,
+    link,
+    mutateAsync,
+    onLifecycleEvent,
+    queryClient,
+    resetMutation,
+    runDomainSubmit,
+    validate,
+  ]);
 
   return {
     submit,
-    isBusy: mutation.isPending || isValidating,
-    status,
   };
 }

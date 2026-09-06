@@ -60,9 +60,11 @@ export type ProductLifecycleEvent =
   | { type: "titleResolved"; title: string }
   | { type: "created" }
   | { type: "createFailed" }
+  | { type: "createTimedOut" }
   | { type: "validationFailed"; name?: string; errors?: ExtensionFieldErrors }
   | { type: "updated" }
   | { type: "updateFailed" }
+  | { type: "updateTimedOut" }
   | { type: "archived"; name?: string }
   | { type: "archiveFailed"; name?: string }
   | { type: "restored" }

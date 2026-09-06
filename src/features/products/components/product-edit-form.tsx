@@ -48,18 +48,38 @@ function ProductEditFormContent({
         onLifecycleEvent,
     });
 
+    const [isExtensionDirty, resetExtensionDirty] = useIsExtensionDirty();
+
     const { submit } = useProductUpdateSubmit({
         productId,
-        onLifecycleEvent,
+        onLifecycleEvent: (event) => {
+            if (event.type === "updated") {
+                resetExtensionDirty();
+            }
+            onLifecycleEvent?.(event);
+        },
         refetch,
     });
 
-    const [isExtensionDirty, resetExtensionDirty] = useIsExtensionDirty();
     useProductNameWatch({ onLifecycleEvent });
 
     useContextBar({
         dirty: isDirty || isExtensionDirty,
-        onSave: handleSubmit(submit),
+        onSave: async () => {
+            let valid = false;
+            await handleSubmit(
+                async () => {
+                    valid = true;
+                    await submit();
+                },
+                () => {
+                    valid = false;
+                },
+            )();
+            if (!valid) {
+                throw new Error("Form validation failed");
+            }
+        },
         onDiscard: () => {
             refetch();
             resetExtensionDirty();

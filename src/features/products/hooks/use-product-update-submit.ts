@@ -1,8 +1,11 @@
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
-import type { ButtonStatusState } from "@khinemyaezin/seller-ui/components/index";
-import { useUpdateSellableProductMutation } from "@/features/products/hooks/use-products";
+import {
+  useUpdateSellableProductMutation,
+  invalidateProductQueries,
+} from "@/features/products/hooks/use-products";
 import { buildUpdateSellableProductRequest } from "@/features/products/adapters/update-sellable-product-request";
 import { determineUpdateIntent } from "@/features/products/adapters/update-product-request";
 import { useUpdateExtensionSyncStore } from "@/features/products/context/extension-sync-store";
@@ -10,6 +13,11 @@ import type {
   ProductFormValue,
   ProductLifecycleEvent,
 } from "@/features/products/types";
+import { UPDATE_SELLABLE_PRODUCT_WORKFLOW } from "@/features/products/constants/create-sellable-product-workflow";
+import {
+  useWorkflowAwaiter,
+  WorkflowTimeoutError,
+} from "@/features/products/hooks/use-workflow-awaiter";
 import { useCatalogLink } from "./use-root";
 
 export type UseProductUpdateSubmitOptions = {
@@ -20,8 +28,6 @@ export type UseProductUpdateSubmitOptions = {
 
 export type UseProductUpdateSubmitResult = {
   submit: () => Promise<void>;
-  isBusy: boolean;
-  status: ButtonStatusState;
 };
 
 export function useProductUpdateSubmit({
@@ -29,16 +35,23 @@ export function useProductUpdateSubmit({
   onLifecycleEvent,
   refetch,
 }: UseProductUpdateSubmitOptions): UseProductUpdateSubmitResult {
+  const queryClient = useQueryClient();
   const { getValues } = useFormContext<ProductFormValue>();
   const productUpdateLink = useCatalogLink("updateSellableProduct");
 
-  const { validate, isValidating } = useValidateAllSlots();
+  const { validate } = useValidateAllSlots();
   const { runDomainSubmit } = useUpdateExtensionSyncStore();
   const mutation = useUpdateSellableProductMutation();
-  const { mutate, reset: resetMutation } = mutation;
+  const { mutateAsync, reset: resetMutation } = mutation;
+
+  const { awaitWorkflow } = useWorkflowAwaiter({
+    workflowName: UPDATE_SELLABLE_PRODUCT_WORKFLOW,
+  });
 
   const submit = useCallback(async () => {
-    if (!productUpdateLink) return;
+    if (!productUpdateLink) {
+      throw new Error("Missing update link");
+    }
 
     const results = await validate();
     const { contributions, errors } = runDomainSubmit(results);
@@ -47,51 +60,55 @@ export function useProductUpdateSubmit({
 
     if (hasSlotErrors || hasFieldErrors) {
       onLifecycleEvent?.({ type: "validationFailed", errors });
-      return;
+      throw new Error("Validation failed");
     }
 
     const values = getValues();
     const intent = determineUpdateIntent({
-      hasVariationTypes: values.variationTypes.length > 0
+      hasVariationTypes: values.variationTypes.length > 0,
     });
-
 
     const payload = buildUpdateSellableProductRequest(productId, values, intent, {
       pricingLines: contributions.pricingLines,
       inventoryLines: contributions.inventoryLines,
     });
 
-    console.log(payload)
-    mutate(
-      {
-        link: productUpdateLink,
-        request: payload,
-      },
-      {
-        onSuccess: () => {
-          onLifecycleEvent?.({ type: "updated" });
-          resetMutation();
-          refetch?.();
-        },
-        onError: () => {
-          onLifecycleEvent?.({ type: "updateFailed" });
-          resetMutation();
-        },
-      },
-    );
-  }, [getValues, productUpdateLink, validate, runDomainSubmit, mutate, productId, onLifecycleEvent, resetMutation, refetch]);
+    try {
+      await awaitWorkflow((idempotencyKey) =>
+        mutateAsync({
+          link: productUpdateLink,
+          request: { ...payload, idempotencyKey },
+        }),
+      );
 
-  const status: ButtonStatusState = mutation.isPending
-    ? "pending"
-    : mutation.isSuccess
-      ? "success"
-      : mutation.isError
-        ? "failed"
-        : "idle";
+      void invalidateProductQueries(queryClient, productId);
+      onLifecycleEvent?.({ type: "updated" });
+      resetMutation();
+      refetch?.();
+    } catch (error) {
+      resetMutation();
+      if (error instanceof WorkflowTimeoutError) {
+        onLifecycleEvent?.({ type: "updateTimedOut" });
+      } else {
+        onLifecycleEvent?.({ type: "updateFailed" });
+      }
+      throw error;
+    }
+  }, [
+    awaitWorkflow,
+    getValues,
+    mutateAsync,
+    onLifecycleEvent,
+    productId,
+    productUpdateLink,
+    queryClient,
+    refetch,
+    resetMutation,
+    runDomainSubmit,
+    validate,
+  ]);
 
   return {
     submit,
-    isBusy: mutation.isPending || isValidating,
-    status,
   };
 }
