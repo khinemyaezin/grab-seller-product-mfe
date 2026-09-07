@@ -52,14 +52,20 @@ export default function ProductNewVariation() {
                         id: "price",
                         header: "Price",
                         cell: (variant) => (
-                            <PricingInlineSlot groupId={pricingInstanceId(variant.matrixKey)} />
+                            <PricingInlineSlot
+                                groupId={pricingInstanceId(variant.matrixKey)}
+                                context={{ sku: variant.sku ?? "" }}
+                            />
                         ),
                     },
                     {
                         id: "stock",
                         header: "Stock",
                         cell: (variant) => (
-                            <InventoryInlineSlot groupId={inventoryGroupId(variant.matrixKey)} />
+                            <InventoryInlineSlot
+                                groupId={inventoryGroupId(variant.matrixKey)}
+                                context={{ sku: variant.sku ?? "" }}
+                            />
                         ),
                     },
                 ]} />

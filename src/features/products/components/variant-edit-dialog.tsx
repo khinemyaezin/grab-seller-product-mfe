@@ -7,6 +7,8 @@ import {
 import { PricingLineFullSlot } from "./pricing-full-slot";
 import { pricingInstanceId } from "@/features/products/constants/pricing-instance-id";
 import { Separator } from "@khinemyaezin/seller-ui/components/separator";
+import { useFormContext, useWatch } from "react-hook-form";
+import { ProductFormValue } from "../types";
 
 export type VariantEditDialogProps = {
   open: boolean;
@@ -21,6 +23,14 @@ export function VariantEditDialog({
   variantName,
   matrixKey,
 }: VariantEditDialogProps) {
+  const { control } = useFormContext<ProductFormValue>();
+  const sku = useWatch({
+    control,
+    name: "product.variants",
+    compute: (variants) =>
+      (variants ?? []).find((variant) => variant.matrixKey === matrixKey)?.sku ?? "",
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent >
@@ -31,6 +41,7 @@ export function VariantEditDialog({
           <div className="flex flex-col gap-6">
             <PricingLineFullSlot
               groupId={pricingInstanceId(matrixKey)}
+              context={{ sku }}
             />
           </div>
         ) : null}

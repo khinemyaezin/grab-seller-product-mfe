@@ -11,6 +11,16 @@ export function PricingEditStandalone() {
         name: "variationTypes",
         compute: (value) => value.length == 0
     })
+    const sku = useWatch({
+        control,
+        name: "product.standaloneVariant.sku",
+        defaultValue: "",
+    });
+    const variantId = useWatch({
+        control,
+        name: "product.standaloneVariant.id",
+        defaultValue: "",
+    });
 
     if(!isStandalone) return;
 
@@ -19,6 +29,10 @@ export function PricingEditStandalone() {
             <CardContent>
                 <PricingLineEditFullSlot
                     groupId={STANDALONE_PRICING_EDIT_GROUP_ID}
+                    context={{
+                        sku: sku ?? "",
+                        variantId: variantId ?? "",
+                    }}
                 />
             </CardContent>
         </Card>

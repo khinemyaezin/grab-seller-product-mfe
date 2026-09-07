@@ -11,6 +11,11 @@ export function InventoryStandalone() {
         name: "variationTypes",
         compute: (value) => value.length == 0
     })
+    const sku = useWatch({
+        control,
+        name: "product.standaloneVariant.sku",
+        defaultValue: "",
+    });
 
     if (!isStandalone) return;
     return (
@@ -18,6 +23,7 @@ export function InventoryStandalone() {
             <CardContent>
                 <InventoryLineFullSlot
                     groupId={STANDALONE_INVENTORY_GROUP_ID}
+                    context={{ sku: sku ?? "" }}
                 />
             </CardContent>
         </Card>

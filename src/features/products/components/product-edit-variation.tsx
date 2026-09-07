@@ -43,7 +43,13 @@ export default function ProductEditVariation() {
                         id: "price",
                         header: "Price",
                         cell: (variant) => (
-                            <PricingEditInlineSlot groupId={pricingEditGroupId(variant.matrixKey)} />
+                            <PricingEditInlineSlot
+                                groupId={pricingEditGroupId(variant.matrixKey)}
+                                context={{
+                                    sku: variant.sku ?? "",
+                                    variantId: variant.id ?? "",
+                                }}
+                            />
                         ),
                     }
                 ]} />
