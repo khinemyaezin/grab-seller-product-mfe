@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router";
+import { BrowserRouter } from "react-router";
 import { ThemeProvider, Toaster } from "@khinemyaezin/seller-ui";
 import AppRoutes from "./AppRoutes";
 import { configureApi } from "@khinemyaezin/seller-api";

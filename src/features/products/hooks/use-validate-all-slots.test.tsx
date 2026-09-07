@@ -8,6 +8,7 @@ import {
 import {
   SlotProvider,
   useSlotProvider,
+  useResetAllSlots,
   useValidateAllSlots,
 } from "@khinemyaezin/seller-ui";
 
@@ -147,5 +148,47 @@ describe("useValidateAllSlots", () => {
         value: "ok",
       },
     ]);
+  });
+});
+
+function useResetHarness() {
+  const { register } = useSlotProvider();
+  const reset = useResetAllSlots();
+  return { register, reset };
+}
+
+describe("useResetAllSlots", () => {
+  it("calls reset on each registered handle and ignores missing reset", () => {
+    const inventoryReset = vi.fn();
+    const inventory: SlotHandle = {
+      validate: vi.fn(async () => ({ valid: true })),
+      getValues: () => undefined,
+      reset: inventoryReset,
+    };
+    const pricing: SlotHandle = {
+      validate: vi.fn(async () => ({ valid: true })),
+      getValues: () => undefined,
+    };
+
+    const { result } = renderHook(() => useResetHarness(), { wrapper });
+
+    act(() => {
+      result.current.register({
+        groupId: "variant-1",
+        slotId: PRODUCT_EXTENSION_SLOTS.CREATE_INVENTORY,
+        handle: inventory,
+      });
+      result.current.register({
+        groupId: "variant-1",
+        slotId: PRODUCT_EXTENSION_SLOTS.CREATE_PRICING,
+        handle: pricing,
+      });
+    });
+
+    act(() => {
+      result.current.reset();
+    });
+
+    expect(inventoryReset).toHaveBeenCalledTimes(1);
   });
 });
