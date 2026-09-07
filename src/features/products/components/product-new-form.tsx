@@ -1,15 +1,18 @@
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { ProductFormValue } from "../types";
 import type { ProductLifecycleEvent } from "../types";
 import { HateoasLink } from "@khinemyaezin/seller-api";
 import { useProductCreateSubmit } from "@/features/products/hooks/use-product-create-submit";
 import { useIsExtensionDirty } from "@/features/products/context/extension-sync-store";
-import { useContextBar } from "@khinemyaezin/seller-ui";
+import { useContextBar, useResetAllSlots } from "@khinemyaezin/seller-ui";
 import { Card, CardContent } from "@khinemyaezin/seller-ui/components/card";
 import { PricingStandalone } from "./pricing-standalone";
 import { InventoryStandalone } from "./inventory-standalone";
 import ProductBasicFieldSet from "./product-basic-fieldset";
 import ProductNewVariation from "./product-new-variation";
+import { useMatrixSync } from "../hooks/use-matrix-sync";
+import { usePricingSlotsSync } from "../hooks/use-pricing-slots-sync";
+import { useInventorySlotsSync } from "../hooks/use-inventory-slots-sync";
 
 export type ProductNewFormProps = {
   link: HateoasLink;
@@ -28,16 +31,25 @@ const DEFAULT_PRODUCT_FORM_VALUE: ProductFormValue = {
   variationTypes: [],
 };
 
-export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFormProps) {
+export default function ProductNewForm(props: ProductNewFormProps) {
   const form = useForm<ProductFormValue>({
     defaultValues: DEFAULT_PRODUCT_FORM_VALUE,
     mode: "onSubmit",
   });
 
-  const { handleSubmit, formState: { isDirty } } = form;
+  return (
+    <FormProvider {...form}>
+      <ProductNewFormContent {...props} />
+    </FormProvider>
+  );
+}
+
+function ProductNewFormContent({ link, onLifecycleEvent }: ProductNewFormProps) {
+  const { handleSubmit, reset, formState: { isDirty } } = useFormContext<ProductFormValue>();
   const [isExtensionDirty, resetExtensionDirty] = useIsExtensionDirty();
+  const resetAllSlots = useResetAllSlots();
+
   const { submit } = useProductCreateSubmit({
-    form,
     link,
     onLifecycleEvent: (event) => {
       if (event.type === "created") {
@@ -45,7 +57,16 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
       }
       onLifecycleEvent?.(event);
     },
+    onSuccess: () => {
+      resetAllSlots();
+      reset(DEFAULT_PRODUCT_FORM_VALUE);
+      resetExtensionDirty();
+    }
   });
+
+  useMatrixSync();
+  usePricingSlotsSync();
+  useInventorySlotsSync();
 
   useContextBar({
     dirty: isDirty || isExtensionDirty,
@@ -65,27 +86,24 @@ export default function ProductNewForm({ link, onLifecycleEvent }: ProductNewFor
       }
     },
     onDiscard: () => {
-      form.reset();
-      resetExtensionDirty();
+
     },
     groupId: "product-new",
     label: "New Product",
   });
 
   return (
-    <FormProvider {...form}>
-      <form onSubmit={handleSubmit(submit)}>
-        <div className="flex flex-col gap-6">
-          <Card className="flex-1 w-full">
-            <CardContent>
-              <ProductBasicFieldSet />
-            </CardContent>
-          </Card>
-          <PricingStandalone />
-          <InventoryStandalone />
-          <ProductNewVariation />
-        </div>
-      </form>
-    </FormProvider>
+    <form onSubmit={handleSubmit(submit)}>
+      <div className="flex flex-col gap-6">
+        <Card className="flex-1 w-full">
+          <CardContent>
+            <ProductBasicFieldSet />
+          </CardContent>
+        </Card>
+        <PricingStandalone />
+        <InventoryStandalone />
+        <ProductNewVariation />
+      </div>
+    </form>
   );
 }

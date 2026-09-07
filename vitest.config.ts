@@ -8,5 +8,9 @@ export default defineConfig({
     dedupe: ["react", "react-dom"],
   },
   plugins: [react()],
-  test: { environment: "jsdom", setupFiles: ["./src/test/setup.ts"] },
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    server: { deps: { inline: [/@khinemyaezin\/seller-/] } },
+  },
 });

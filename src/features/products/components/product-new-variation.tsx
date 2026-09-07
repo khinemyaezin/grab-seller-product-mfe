@@ -1,6 +1,3 @@
-import { useInventorySlotsSync } from "../hooks/use-inventory-slots-sync";
-import { useMatrixSync } from "../hooks/use-matrix-sync";
-import { usePricingSlotsSync } from "../hooks/use-pricing-slots-sync";
 import { VariantTable } from "./variant-table";
 import ProductVariationFieldSet from "./product-variation-fieldset";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, FieldGroup } from "@khinemyaezin/seller-ui/components/index";
@@ -19,10 +16,6 @@ export default function ProductNewVariation() {
         name: "variationTypes",
         compute: (value) => value.length == 0
     })
-
-    useMatrixSync();
-    usePricingSlotsSync();
-    useInventorySlotsSync();
 
     const StandaloneVariantFieldGroup = (
         <FieldGroup className="p-6 border-b">

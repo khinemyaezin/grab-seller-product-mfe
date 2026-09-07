@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import { useFormContext, type UseFormReturn } from "react-hook-form";
 import type { HateoasLink } from "@khinemyaezin/seller-api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useValidateAllSlots } from "@khinemyaezin/seller-ui";
@@ -20,9 +20,9 @@ import {
 } from "@/features/products/hooks/use-workflow-awaiter";
 
 export type UseProductCreateSubmitOptions = {
-  form: UseFormReturn<ProductFormValue>;
   link: HateoasLink;
   onLifecycleEvent?: (event: ProductLifecycleEvent) => void;
+  onSuccess?: () => void
 };
 
 export type UseProductCreateSubmitResult = {
@@ -30,11 +30,12 @@ export type UseProductCreateSubmitResult = {
 };
 
 export function useProductCreateSubmit({
-  form,
   link,
   onLifecycleEvent,
+  onSuccess
 }: UseProductCreateSubmitOptions): UseProductCreateSubmitResult {
   const queryClient = useQueryClient();
+  const { getValues, reset } = useFormContext<ProductFormValue>();
   const { validate } = useValidateAllSlots();
   const { runDomainSubmit } = useCreateExtensionSyncStore();
   const mutation = useCreateSellableProductMutation();
@@ -55,7 +56,7 @@ export function useProductCreateSubmit({
       throw new Error("Validation failed");
     }
 
-    const payload = buildCreateSellableProductRequest(form.getValues(), contributions);
+    const payload = buildCreateSellableProductRequest(getValues(), contributions);
 
     try {
       await awaitWorkflow((idempotencyKey) =>
@@ -67,7 +68,7 @@ export function useProductCreateSubmit({
       void invalidateProductsQueries(queryClient);
       onLifecycleEvent?.({ type: "created" });
       resetMutation();
-      form.reset();
+      onSuccess?.();
     } catch (error) {
       resetMutation();
       if (error instanceof WorkflowTimeoutError) {
@@ -79,7 +80,7 @@ export function useProductCreateSubmit({
     }
   }, [
     awaitWorkflow,
-    form,
+    getValues,
     link,
     mutateAsync,
     onLifecycleEvent,

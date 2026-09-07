@@ -11,7 +11,7 @@ import ProductEditVariation from "./product-edit-variation";
 import { PricingEditStandalone } from "./pricing-edit-standalone";
 import { resolveLink } from "@khinemyaezin/seller-api";
 import ActionButtonGroup from "./product-edit-actions";
-import { useContextBar } from "@khinemyaezin/seller-ui";
+import { useContextBar, useResetAllSlots } from "@khinemyaezin/seller-ui";
 import { useIsExtensionDirty } from "../context/extension-sync-store";
 import useProductNameWatch from "../hooks/use-product-name-watch";
 import { InventoryEditStandalone } from "./inventory-edit-standalone";
@@ -41,7 +41,7 @@ function ProductEditFormContent({
     productId,
     onLifecycleEvent,
 }: ProductEditFormProps) {
-    const { handleSubmit, formState: { isDirty } } = useFormContext<ProductFormValue>();
+    const { handleSubmit, reset, formState: { isDirty } } = useFormContext<ProductFormValue>();
 
     const { isLoading: isFetchingProductById, refetch, status: productStatus, actions } = useProductEdit({
         productId,
@@ -49,6 +49,7 @@ function ProductEditFormContent({
     });
 
     const [isExtensionDirty, resetExtensionDirty] = useIsExtensionDirty();
+    const resetAllSlots = useResetAllSlots();
 
     const { submit } = useProductUpdateSubmit({
         productId,
@@ -81,6 +82,8 @@ function ProductEditFormContent({
             }
         },
         onDiscard: () => {
+            resetAllSlots();
+            reset();
             refetch();
             resetExtensionDirty();
         },

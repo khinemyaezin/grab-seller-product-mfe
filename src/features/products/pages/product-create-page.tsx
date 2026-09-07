@@ -1,11 +1,14 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Header } from "@khinemyaezin/seller-ui/layout/header";
 import { SlotProvider, usePlatform } from "@khinemyaezin/seller-ui";
 import ProductNewForm from "@/features/products/components/product-new-form";
 import { ExtensionSyncProvider } from "@/features/products/context/extension-sync-store";
 import { useCatalogLink } from "../hooks/use-root";
 import { useProductCreateEvents } from "@/features/products/hooks/use-product-create-events";
+import { Button } from "@khinemyaezin/seller-ui/components/button";
+import { ButtonGroup } from "@khinemyaezin/seller-ui/components/button-group";
+import { ArrowLeftIcon } from "lucide-react";
 
 export type ProductCreatePageProps = {};
 
@@ -31,6 +34,13 @@ export default function NewProductPage({ }: ProductCreatePageProps) {
         title="Add Product"
         description="Add a new product to your seller catalog."
       >
+        <ButtonGroup>
+          <Button type="button" variant="secondary" asChild>
+            <Link to=".." className="flex gap-2 items-center">
+              <ArrowLeftIcon />
+            </Link>
+          </Button>
+        </ButtonGroup>
       </Header>
       {createSellableProductLink && (
         <SlotProvider>
