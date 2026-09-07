@@ -205,6 +205,24 @@ export function useSlotPayload<TPayload>(groupId: string): TPayload | undefined 
   return useSyncExternalStore(store.subscribe, getSnapshot);
 }
 
+export function useSlotDraft<TPayload>(domain: string, groupId: string) {
+  const store = useExtensionSyncStore();
+  const initialValue = useSlotPayload<TPayload>(groupId);
+
+  const onChange = useCallback(
+    (payload: TPayload) => {
+      store.setPayload({
+        domain,
+        groupId,
+        payload,
+      });
+    },
+    [store, domain, groupId],
+  );
+
+  return { initialValue, onChange };
+}
+
 export function useHasSlotEntries(): boolean {
   const store = useExtensionSyncStore();
   const getSnapshot = useCallback(

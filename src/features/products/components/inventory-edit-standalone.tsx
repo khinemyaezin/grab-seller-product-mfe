@@ -1,9 +1,15 @@
-import { PRODUCT_EXTENSION_SLOTS } from "@khinemyaezin/seller-contracts";
+import {
+  PRODUCT_EXTENSION_SLOTS,
+  type InventoryEditContext,
+  type InventoryEditPayload,
+} from "@khinemyaezin/seller-contracts";
 import { ExtensionSlot } from "@khinemyaezin/seller-ui";
 import { STANDALONE_INVENTORY_EDIT_GROUP_ID } from "../constants/inventory-group-id";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@khinemyaezin/seller-ui/components/card";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ProductFormValue } from "../types";
+import { useSlotDraft } from "../context/extension-sync-store";
+import { INVENTORY_EDIT_DOMAIN } from "../hooks/use-inventory-edit-slots-sync";
 
 export function InventoryEditStandalone() {
     const { control } = useFormContext<ProductFormValue>();
@@ -12,6 +18,25 @@ export function InventoryEditStandalone() {
         name: "variationTypes",
         compute: (value) => value.length == 0,
     });
+    const sku = useWatch({
+        control,
+        name: "product.standaloneVariant.sku",
+        defaultValue: "",
+    });
+    const variantId = useWatch({
+        control,
+        name: "product.standaloneVariant.id",
+        defaultValue: "",
+    });
+    const { initialValue, onChange } = useSlotDraft<InventoryEditPayload>(
+        INVENTORY_EDIT_DOMAIN,
+        STANDALONE_INVENTORY_EDIT_GROUP_ID,
+    );
+
+    const context: InventoryEditContext = {
+        sku: sku ?? "",
+        variantId: variantId ?? "",
+    };
 
     if (!isStandalone) return;
 
@@ -30,6 +55,9 @@ export function InventoryEditStandalone() {
                     fallback={(<p>Unable to load inventory</p>)}
                     props={{
                         groupId: STANDALONE_INVENTORY_EDIT_GROUP_ID,
+                        context,
+                        initialValue,
+                        onChange,
                     }}
                 />
             </CardContent>

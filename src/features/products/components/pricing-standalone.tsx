@@ -11,6 +11,11 @@ export function PricingStandalone() {
         name: "variationTypes",
         compute: (value) => value.length == 0
     })
+    const sku = useWatch({
+        control,
+        name: "product.standaloneVariant.sku",
+        defaultValue: "",
+    });
 
     if (!isStandalone) return;
     
@@ -19,6 +24,7 @@ export function PricingStandalone() {
             <CardContent>
                 <PricingLineFullSlot
                     groupId={STANDALONE_PRICING_INSTANCE_ID}
+                    context={{ sku: sku ?? "" }}
                 />
             </CardContent>
         </Card>
